@@ -4,3 +4,4 @@
 #include "catch.hpp"
 
 #include "ram_test.cpp"
+#include "display_test.cpp"
