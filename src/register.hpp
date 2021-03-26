@@ -3,8 +3,8 @@
 #ifndef REGISTER_HPP
 #define REGISTER_HPP
 
-#include <array>
 #include <iostream>
+#include <bitset>
 
 /*
 * Class representing an 8-bit register. 8 bits can be written and read from 
@@ -13,18 +13,17 @@
 template <int register_size_>
 class Register {
 
-public: 
-  Register();
+public:
 
   /**
    * Stores the bits p_bits in the register.
    */
-  void Write(std::array<bool, register_size_> p_bits);
+  void Write(std::bitset<register_size_> p_bits);
 
   /**
    * Reads and returns the bits that are stored in the register.
    */
-  std::array<bool, register_size_> Read();
+  std::bitset<register_size_> Read();
 
   /*
   * Used to print the contents of the register to the console.
@@ -35,22 +34,16 @@ private:
   /**
    * The array of bits stored in register.
    */
-  std::array<bool, register_size_> bits_; 
+  std::bitset<register_size_> bits_; 
 };
 
 template<int register_size_>
-Register<register_size_>::Register() {
-  // Initialize all bits to zero.
-  bits_.fill(0);
-}
-
-template<int register_size_>
-void Register<register_size_>::Write(std::array<bool, register_size_> p_bits) {
+void Register<register_size_>::Write(std::bitset<register_size_> p_bits) {
   bits_ = p_bits;
 }
 
 template<int register_size_>
-std::array<bool, register_size_> Register<register_size_>::Read() {
+std::bitset<register_size_> Register<register_size_>::Read() {
   return bits_;
 }
 
