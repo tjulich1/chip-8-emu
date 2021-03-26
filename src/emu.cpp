@@ -14,7 +14,7 @@ void Emu::LoadInstruction(int p_address, std::bitset<16> p_instruction) {
   // second_byte = [7, ... , 0]
   // mem[p_address] = first_byte
   // mem[p_address + 1] = second_byte
-  
+
   std::bitset<8> byte;
 
   // Write first byte to memory
@@ -42,13 +42,9 @@ void Emu::SetProgramCounter(int p_pc_value) {
 void Emu::PrintMemory(int p_address) {
   std::cout << "Mem[" << p_address << "]: ";
   std::bitset<8> read_value = memory_.Read(p_address);
-  for (int i = 0; i < read_value.size(); i++) {
-    std::cout << read_value[i];
-    if (i % 4 == 3) {
-      std::cout << ' ';
-    }
-  }
-  std::cout << std::endl;
+  std::bitset<4> first_nibble(read_value.to_string().substr(0, 4));
+  std::bitset<4> second_nibble(read_value.to_string().substr(4, 4));  
+  std::cout << std::hex << first_nibble.to_ulong() << second_nibble.to_ulong() << std::endl;
 }
 
 void Emu::Step() {
