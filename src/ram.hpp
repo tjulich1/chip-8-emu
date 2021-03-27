@@ -4,6 +4,7 @@
 #define RAM_HPP
 
 #include <array>
+#include <vector>
 #include <bitset>
 
 /**
@@ -17,6 +18,11 @@ public:
   * Writes the value p_value into memory at p_address.
   */
   void Write(int p_address, std::bitset<8> p_value);
+
+  /*
+  * Writes the values stored in p_values into memory, starting at p_address.
+  */
+  void Write(int p_address, std::vector<std::bitset<8>> p_values);
 
   /*
   * Returns the value that is stored in memory_[p_address]. If ADDRESSES < p_address < 0 Read will

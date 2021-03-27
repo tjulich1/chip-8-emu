@@ -33,13 +33,21 @@ int Display::get_pixel_height() {
 }
 
 void Display::Print() {
-  std::cout << "WIDTH: " << PIXEL_WIDTH << std::endl;
-  std::cout << "HEIGHT: " << PIXEL_HEIGHT << std::endl;
+  std::cout << "WIDTH: " << std::dec << PIXEL_WIDTH << std::endl;
+  std::cout << "HEIGHT: " << std::dec << PIXEL_HEIGHT << std::endl;
   for (int i = 0; i < PIXEL_HEIGHT; i++) {
     std::array<bool, PIXEL_WIDTH> current_row = pixels_[i];
     for (int j = 0; j < PIXEL_WIDTH; j++) {
       std::cout << current_row[j];
     }
     std::cout << std::endl;
+  }
+}
+
+void Display::Clear() {
+  for (int i = 0; i < PIXEL_HEIGHT; i++) {
+    for (int j = 0; j < PIXEL_WIDTH; j++) {
+      SetPixel(i, j, 0);
+    }
   }
 }

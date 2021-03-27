@@ -17,6 +17,9 @@
 class Emu {
 
 public: 
+
+  Emu();
+
   void LoadInstruction(int p_address, std::bitset<16> p_instruction);
   void SetProgramCounter(int p_pc_value);
 
@@ -24,6 +27,7 @@ public:
   void Step();
   void PrintMemory(int p_address);
   void PrintDisplay();
+  void ClearScreen();
 private:
   std::array<Register<8>, 16> variable_registers_;
   Display main_display_;
@@ -32,9 +36,14 @@ private:
   Register<16> index_counter_;
   std::vector<std::bitset<16>> ret_address_stack_;
 
+  void InitializeFonts();
+
   std::bitset<16> Fetch();
   void Decode();
   void Execute();
+
+  // Instructions
+  
 };
 
 #endif

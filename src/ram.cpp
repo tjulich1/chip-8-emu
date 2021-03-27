@@ -12,6 +12,14 @@ void Ram::Write(int p_address, std::bitset<8> p_value) {
   }
 }
 
+void Ram::Write(int p_address, std::vector<std::bitset<8>> p_values) {
+  for (int i = 0; i < p_values.size(); i++) {
+    if ( (p_address + i < ADDRESSES) && (p_address >= 0) ) {
+      memory_[p_address + i] = p_values[i];
+    }
+  }
+}
+
 /*
   Reads the value at memory_[p_address] and returns it.
 */

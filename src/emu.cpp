@@ -2,9 +2,8 @@
 
 #include <iostream>
 
-int BitsToInt(std::array<bool, 8> p_bits) {
-  int value;
-
+Emu::Emu() {
+  InitializeFonts();
 }
 
 void Emu::LoadInstruction(int p_address, std::bitset<16> p_instruction) {
@@ -40,7 +39,7 @@ void Emu::SetProgramCounter(int p_pc_value) {
 }
 
 void Emu::PrintMemory(int p_address) {
-  std::cout << "Mem[" << p_address << "]: ";
+  std::cout << "Mem[" << std::dec << p_address << "]: ";
   std::bitset<8> read_value = memory_.Read(p_address);
   std::bitset<4> first_nibble(read_value.to_string().substr(0, 4));
   std::bitset<4> second_nibble(read_value.to_string().substr(4, 4));  
@@ -49,12 +48,56 @@ void Emu::PrintMemory(int p_address) {
 
 void Emu::Step() {
 
+  std::cout << "Instruction at PC " << program_counter_ << ": ";
+
+  std::bitset<16> current_instruction = Fetch();
+  std::cout << std::hex << std::bitset<4>(current_instruction.to_string().substr(0, 4)).to_ulong();
+  std::cout << std::hex << std::bitset<4>(current_instruction.to_string().substr(4, 4)).to_ulong();
+  std::cout << std::hex << std::bitset<4>(current_instruction.to_string().substr(8, 4)).to_ulong();
+  std::cout << std::hex << std::bitset<4>(current_instruction.to_string().substr(12, 4)).to_ulong();
+  std::cout << std::endl;
 }
 
 std::bitset<16> Emu::Fetch() {
   
+  std::bitset<8> first_byte = memory_.Read(program_counter_);
+  std::bitset<8> second_byte = memory_.Read(program_counter_ + 1);
+
+  program_counter_ += 2;
+
+  std::bitset<16> current_instruction(first_byte.to_string() + second_byte.to_string());
+  return current_instruction;
 }
 
 void Emu::PrintDisplay() {
   main_display_.Print();
+}
+
+void Emu::ClearScreen() {
+  main_display_.Clear();
+}
+
+void Emu::InitializeFonts() {
+  std::vector<int> font_bytes{
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80  // F  
+  };
+  for (int i = 0; i < font_bytes.size(); i++) {
+    std::bitset<8> current_byte(font_bytes[i]);
+    memory_.Write(0x50 + i, current_byte);
+  }
 }
