@@ -27,13 +27,15 @@ public:
   void Step();
   void PrintMemory(int p_address);
   void PrintDisplay();
-  void ClearScreen();
+  void PrintRegisters();
+  std::bitset<8> GetRegister(int p_register);
+
 private:
   std::array<Register<8>, 16> variable_registers_;
   Display main_display_;
   Ram memory_;
   int program_counter_;
-  Register<16> index_counter_;
+  Register<16> index_register_;
   std::vector<std::bitset<16>> ret_address_stack_;
 
   void InitializeFonts();
@@ -43,7 +45,12 @@ private:
   void Execute();
 
   // Instructions
-  
+  void ClearScreen();
+  void Jump(int p_new_program_counter);
+  void SetRegister(int p_register, int p_new_value);
+  void AddValToRegister(int p_register, int p_val);
+  void SetIndexRegister(std::bitset<16> p_new_index_register);
+  void Display(int p_rows, int p_x_coord, int p_y_coord);
 };
 
 #endif

@@ -73,8 +73,19 @@ void Emu::PrintDisplay() {
   main_display_.Print();
 }
 
-void Emu::ClearScreen() {
-  main_display_.Clear();
+void Emu::PrintRegisters() {
+  for (int i = 0; i < variable_registers_.size(); i++) {
+    std::cout << "V" << std::hex << i << ": " << variable_registers_[i].Read().to_ulong() 
+      << std::endl;
+  }
+}
+
+std::bitset<8> Emu::GetRegister(int p_register) {
+  std::bitset<8> value;
+  if (p_register > -1 && p_register < 16) {
+    value = variable_registers_[p_register].Read();
+  }
+  return value;
 }
 
 void Emu::InitializeFonts() {
@@ -100,4 +111,33 @@ void Emu::InitializeFonts() {
     std::bitset<8> current_byte(font_bytes[i]);
     memory_.Write(0x50 + i, current_byte);
   }
+}
+
+void Emu::ClearScreen() {
+  main_display_.Clear();
+}
+
+void Emu::Jump(int p_new_program_counter) {
+  program_counter_ = p_new_program_counter;
+}
+
+void Emu::SetRegister(int p_register, int p_new_value) {
+  if (p_register > -1 && p_register < 16) {
+    variable_registers_[p_register].Write(std::bitset<8>(p_new_value));
+  }
+}
+
+void Emu::AddValToRegister(int p_register, int p_val) {
+  if (p_register > -1 && p_register < 16) {
+    int new_value = variable_registers_[p_register].Read().to_ulong() + p_val;
+    variable_registers_[p_register].Write(std::bitset<8>(new_value));
+  }
+} 
+
+void Emu::SetIndexRegister(std::bitset<16> p_new_index_register) {
+  index_register_.Write(p_new_index_register);
+}
+
+void Emu::Display(int p_rows, int p_x_coord, int p_y_coord) {
+  
 }

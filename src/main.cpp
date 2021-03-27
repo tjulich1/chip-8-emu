@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[]) {
   Emu emu;
-
+  emu.PrintRegisters();
   // emu.LoadInstruction(0, std::bitset<16>("0000000011100000"));
   // emu.LoadInstruction(2, std::bitset<16>("1111000011001111"));
 
@@ -22,11 +22,11 @@ int main(int argc, char* argv[]) {
 
   // emu.PrintDisplay();
   
-  emu.PrintMemory(0x50);
-  emu.PrintMemory(0x51);
-  emu.PrintMemory(0x52);
-  emu.PrintMemory(0x53);
-  emu.PrintMemory(0x54);
+  // emu.PrintMemory(0x50);
+  // emu.PrintMemory(0x51);
+  // emu.PrintMemory(0x52);
+  // emu.PrintMemory(0x53);
+  // emu.PrintMemory(0x54);
 
   return 0;
 }
