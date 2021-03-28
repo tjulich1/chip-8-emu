@@ -6,27 +6,18 @@
 
 int main(int argc, char* argv[]) {
   Emu emu;
-  emu.PrintRegisters();
-  // emu.LoadInstruction(0, std::bitset<16>("0000000011100000"));
-  // emu.LoadInstruction(2, std::bitset<16>("1111000011001111"));
-
-  // emu.PrintMemory(0);
-  // emu.PrintMemory(1);
-
-  // emu.PrintMemory(2);
-  // emu.PrintMemory(3);
   
-  // emu.SetProgramCounter(0);
+  Display &emu_display = emu.get_display();
 
-  // emu.Step();
+  emu.PrintDisplay();
+  emu.get_display().SetPixel(0, 0, 1);
+  emu.PrintDisplay();
 
-  // emu.PrintDisplay();
+  std::cout << std::endl << std::endl;
+
+  emu_display.Print();
+
   
-  // emu.PrintMemory(0x50);
-  // emu.PrintMemory(0x51);
-  // emu.PrintMemory(0x52);
-  // emu.PrintMemory(0x53);
-  // emu.PrintMemory(0x54);
 
   return 0;
 }

@@ -25,3 +25,15 @@ TEST_CASE("Testing several display set pixel calls", "[hardware]") {
     REQUIRE(test_display.GetPixel(row, col) == value);
   }
 }
+
+TEST_CASE("Testing the clear display method and is clear method", "[hardware]") {
+  test_display.SetPixel(0, 0, 1);
+  REQUIRE(!test_display.IsClear());
+  test_display.Clear();
+  REQUIRE(test_display.IsClear());
+  test_display.SetPixel(2, 3, 1);
+  test_display.SetPixel(27, 2, 1);
+  REQUIRE(!test_display.IsClear());
+  test_display.Clear();
+  REQUIRE(test_display.IsClear()); 
+}

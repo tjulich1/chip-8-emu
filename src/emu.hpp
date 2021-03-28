@@ -22,14 +22,19 @@ public:
 
   void LoadInstruction(int p_address, std::bitset<16> p_instruction);
   void SetProgramCounter(int p_pc_value);
+  void SetIndexRegister(int p_index_value);
+
+  int GetProgramCounter();
+  std::bitset<16> GetIndexRegister();
 
   // Step is the method used to execute one fetch->decode->execute cycle.
   void Step();
   void PrintMemory(int p_address);
   void PrintDisplay();
   void PrintRegisters();
-  std::bitset<8> GetRegister(int p_register);
-
+  int GetRegister(int p_register);
+  void SetRegister(int p_register, int p_new_value);
+  Display& get_display();
 private:
   std::array<Register<8>, 16> variable_registers_;
   Display main_display_;
@@ -41,15 +46,13 @@ private:
   void InitializeFonts();
 
   std::bitset<16> Fetch();
-  void Decode();
+  void Decode(std::bitset<16> p_instruction);
   void Execute();
 
   // Instructions
   void ClearScreen();
   void Jump(int p_new_program_counter);
-  void SetRegister(int p_register, int p_new_value);
   void AddValToRegister(int p_register, int p_val);
-  void SetIndexRegister(std::bitset<16> p_new_index_register);
   void Display(int p_rows, int p_x_coord, int p_y_coord);
 };
 

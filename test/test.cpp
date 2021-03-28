@@ -6,3 +6,4 @@
 #include "register_test.cpp"
 #include "ram_test.cpp"
 #include "display_test.cpp"
+#include "instructions_test.cpp" 

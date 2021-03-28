@@ -13,6 +13,7 @@ public:
 
   void Print();
   void Clear();
+  bool IsClear();
 
   int get_pixel_width();
   int get_pixel_height(); 

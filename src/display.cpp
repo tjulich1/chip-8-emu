@@ -51,3 +51,19 @@ void Display::Clear() {
     }
   }
 }
+
+bool Display::IsClear() {
+  bool is_clear = true;
+  for (int i = 0; i < pixels_.size(); i++) {
+    for (int j = 0; j < pixels_[i].size(); j++) {
+      if (pixels_[i][j]) {
+        is_clear = false;
+        break;
+      }
+    }
+    if (!is_clear) {
+      break;
+    }
+  }
+  return is_clear;
+}

@@ -22,15 +22,10 @@ void Emu::LoadInstruction(int p_address, std::bitset<16> p_instruction) {
   }
   memory_.Write(p_address, byte);
 
-  std::cout << "Wrote " << std::hex << byte.to_ulong();
-
   // Write second byte to memory
   for (int i = 0; i < 8; i++) {
     byte[i] = p_instruction[i];
   }
-
-  std::cout << std::hex << byte.to_ulong() << " to " << p_instruction << std::endl;
-
   memory_.Write(p_address + 1, byte);
 }
 
@@ -49,13 +44,56 @@ void Emu::PrintMemory(int p_address) {
 void Emu::Step() {
 
   std::cout << "Instruction at PC " << program_counter_ << ": ";
+  
 
   std::bitset<16> current_instruction = Fetch();
-  std::cout << std::hex << std::bitset<4>(current_instruction.to_string().substr(0, 4)).to_ulong();
-  std::cout << std::hex << std::bitset<4>(current_instruction.to_string().substr(4, 4)).to_ulong();
-  std::cout << std::hex << std::bitset<4>(current_instruction.to_string().substr(8, 4)).to_ulong();
-  std::cout << std::hex << std::bitset<4>(current_instruction.to_string().substr(12, 4)).to_ulong();
-  std::cout << std::endl;
+  Decode(current_instruction);
+}
+
+void Emu::Decode(std::bitset<16> p_instruction) {
+  // Grab far left nibble
+  std::bitset<4> first(p_instruction.to_string().substr(0, 4));
+  // Grab second
+  std::bitset<4> second(p_instruction.to_string().substr(4, 4));
+  // Grab third
+  std::bitset<4> third(p_instruction.to_string().substr(8, 4));
+  // Grab far right nibble
+  std::bitset<4> fourth(p_instruction.to_string().substr(12, 4));
+  std::cout << std::hex << first.to_ulong() << second.to_ulong() << third.to_ulong() << fourth.to_ulong() << std::endl;
+
+  if (p_instruction.to_ulong() == 0x00e0) {
+    ClearScreen();
+  }
+  switch(first.to_ulong()) {
+    case 0x1: {
+      int new_program_counter = (p_instruction & std::bitset<16>(0x0FFF)).to_ullong();
+      Jump(new_program_counter);
+      break;
+    }
+    case 0xD: {
+      int rows = fourth.to_ulong();
+      int x_coord = variable_registers_[second.to_ulong()].Read().to_ulong();
+      int y_coord = variable_registers_[third.to_ulong()].Read().to_ulong();
+      Display(rows, x_coord, y_coord);
+      break;
+    }
+    case 0x7: {
+      int register_number = second.to_ulong();
+      int value_to_add = std::bitset<8>(p_instruction.to_string().substr(8, 8)).to_ulong();
+      AddValToRegister(register_number, value_to_add);
+      break;
+    }
+    case 0x6: {
+      int register_number = second.to_ulong();
+      int new_value = std::bitset<8>(p_instruction.to_string().substr(8, 8)).to_ulong();
+      SetRegister(register_number, new_value);
+      break;
+    }
+    case 0xA: {
+      SetIndexRegister(std::bitset<16>(p_instruction.to_string().substr(4, 12)).to_ulong());
+      break;
+    }
+  }
 }
 
 std::bitset<16> Emu::Fetch() {
@@ -69,6 +107,10 @@ std::bitset<16> Emu::Fetch() {
   return current_instruction;
 }
 
+int Emu::GetProgramCounter() {
+  return program_counter_;
+}
+
 void Emu::PrintDisplay() {
   main_display_.Print();
 }
@@ -80,12 +122,12 @@ void Emu::PrintRegisters() {
   }
 }
 
-std::bitset<8> Emu::GetRegister(int p_register) {
+int Emu::GetRegister(int p_register) {
   std::bitset<8> value;
   if (p_register > -1 && p_register < 16) {
     value = variable_registers_[p_register].Read();
   }
-  return value;
+  return value.to_ulong();
 }
 
 void Emu::InitializeFonts() {
@@ -134,10 +176,40 @@ void Emu::AddValToRegister(int p_register, int p_val) {
   }
 } 
 
-void Emu::SetIndexRegister(std::bitset<16> p_new_index_register) {
-  index_register_.Write(p_new_index_register);
+void Emu::Display(int p_rows, int p_x_coord, int p_y_coord) {
+  std::cout << "ROWS: " << p_rows << ", X: " << p_x_coord << ", Y:" << p_y_coord << std::endl;
+
+  // For p_rows:
+  for (int i = 0; i < p_rows; i++) { 
+  //   grab byte of sprite from address in index_register_
+    std::bitset<8> sprite = memory_.Read(index_register_.Read().to_ulong());
+    //   For bit in current byte:
+    for (int j = 7; j > -1; j--) {
+      //     if current_bit = 1 && display[x][y] == 1
+      if (main_display_.GetPixel(p_y_coord, p_x_coord) && sprite[j]) {
+        //       VF = 1  
+        variable_registers_[0xF].Write(std::bitset<8>(1)); 
+      } else if (sprite[j]) {
+        main_display_.SetPixel(p_y_coord, p_x_coord, 1);
+      } 
+      if (p_x_coord + (7-j) >= main_display_.get_pixel_width()) {
+        break;
+      }
+    }
+    if (p_y_coord + i >= main_display_.get_pixel_height()) {
+      break;
+    }
+  }
 }
 
-void Emu::Display(int p_rows, int p_x_coord, int p_y_coord) {
-  
+Display& Emu::get_display() {
+  return main_display_;
+}
+
+std::bitset<16> Emu::GetIndexRegister() {
+  return index_register_.Read();
+}
+
+void Emu::SetIndexRegister(int p_new_value) {
+  index_register_.Write(std::bitset<16>(p_new_value));
 }
