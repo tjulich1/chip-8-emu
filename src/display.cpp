@@ -33,12 +33,9 @@ int Display::get_pixel_height() {
 }
 
 void Display::Print() {
-  std::cout << "WIDTH: " << std::dec << PIXEL_WIDTH << std::endl;
-  std::cout << "HEIGHT: " << std::dec << PIXEL_HEIGHT << std::endl;
-  for (int i = 0; i < PIXEL_HEIGHT; i++) {
-    std::array<bool, PIXEL_WIDTH> current_row = pixels_[i];
-    for (int j = 0; j < PIXEL_WIDTH; j++) {
-      std::cout << current_row[j];
+  for (auto row : pixels_) {
+    for (bool value : row) {
+      std::cout << value;
     }
     std::cout << std::endl;
   }
@@ -56,11 +53,13 @@ bool Display::IsClear() {
   bool is_clear = true;
   for (int i = 0; i < pixels_.size(); i++) {
     for (int j = 0; j < pixels_[i].size(); j++) {
+      // If a single pixel is found in any row, display isn't clear.
       if (pixels_[i][j]) {
         is_clear = false;
         break;
       }
     }
+    // This is true only if a pixel has been found to be enabled, so stop searching and break.
     if (!is_clear) {
       break;
     }

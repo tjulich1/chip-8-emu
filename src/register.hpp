@@ -50,14 +50,14 @@ std::bitset<register_size_> Register<register_size_>::Read() {
 template<int register_size_>
 void Register<register_size_>::Print() {
   std::cout << "Register: ";
-  for (int i = 0; i < bits_.size(); i++) {
+  for (int i = bits_.size() - 1; i > -1; i--) {
     std::cout << bits_[i];
+
     if ((i % 4) == 3) {
       std::cout << ' ';
     }
   }
   std::cout << std::endl;
 }
-
 
 #endif
