@@ -1,3 +1,6 @@
 /build
 a.exe
 test.exe
+SDL2.dll
+/lib
+/include

@@ -2,6 +2,9 @@
 
 #ifndef DISPLAY_HPP
 #define DISPLAY_HPP
+
+#include <SDL.h>
+
 #include <array>
 
 /**
@@ -10,7 +13,20 @@
 class Display {
 
 public:
+  /** 
+   * Default constructor
+   */
   Display();
+
+  /**
+   * Constructor with pointer to renderer to draw to.
+   */
+  Display(SDL_Renderer* p_renderer);
+
+  /**
+   * Renders the pixels in pixels_ to the sdl renderer being used.
+  */
+  void Render();
 
   /**
    * Sets the value of sets the value of the pixel at (p_col, p_row) = p_value.
@@ -59,6 +75,11 @@ private:
    * drawn, otherwise the pixel should not be drawn.
    */
   std::array<std::array<bool, PIXEL_WIDTH>, PIXEL_HEIGHT> pixels_;
+
+  /**
+   * The renderer used to draw on.
+   */
+  SDL_Renderer* renderer_;
 };
 
 #endif

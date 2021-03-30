@@ -21,16 +21,25 @@ public:
 
   Emu();
 
+  Emu(SDL_Renderer* p_renderer);
+
   /**
    * Load the 16 bit instruction into memory starting at p_address. The left byte is stored in 
    * mem[p_address] and the right byte is stored in mem[p_address + 1];
    */
   void LoadInstruction(int p_address, std::bitset<16> p_instruction);
   
+  void Start();
+
   /**
    *  Fetches, decodes, and executes the next instruction pointed to by the program counter.
    */
   void Step();  
+
+  /**
+   * Called to render the current display state to the renderer being used.
+   */
+  void Render();
 
   /**
    * Print the byte byte at mem[p_address] to the console.
@@ -95,6 +104,11 @@ private:
   Display main_display_;
 
   /**
+   * The renderer that the emulator is rendering to.
+   */
+  SDL_Renderer* renderer_;
+
+  /**
    * 4kB of simulated memory, with 4096 addressable 8-bit locations.
    */
   Ram memory_;
@@ -147,7 +161,7 @@ private:
    * row should be stored in memory, and the address of the first byte that should be drawn should 
    * be stored in the index register. 
    */
-  void Display(int p_rows, int p_x_coord, int p_y_coord);
+  void DisplaySprite(int p_rows, int p_x_coord, int p_y_coord);
 
   /**
    * Stores basic sprites for fonts into memory.

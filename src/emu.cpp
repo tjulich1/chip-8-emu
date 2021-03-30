@@ -8,6 +8,25 @@ Emu::Emu() {
   InitializeFonts();
 }
 
+Emu::Emu(SDL_Renderer* p_renderer) {
+  renderer_ = p_renderer;
+  main_display_ = Display(renderer_);
+  InitializeFonts();
+}
+
+void Emu::Start() {
+  bool quit = false;
+  while (!quit) {
+    std::bitset<16> current_instruction = Fetch();
+    if (current_instruction != std::bitset<16>(0x000)) {
+      Decode(current_instruction);
+      Render();
+    } else {
+      quit = true;
+    } 
+  }
+}
+
 void Emu::LoadInstruction(int p_address, std::bitset<16> p_instruction) {
   // Grab the leftmost 8 bits of the instruction.
   std::bitset<8> first_byte(p_instruction.to_string().substr(0, 8));
@@ -26,6 +45,18 @@ void Emu::Step() {
 
   // Pass the instruction to get decoded.
   Decode(current_instruction);
+}
+
+void Emu::Render() {
+
+  // Fill with white
+  SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
+  SDL_RenderClear(renderer_);
+
+  // Draw the display
+  main_display_.Render();
+
+  SDL_RenderPresent(renderer_);
 }
 
 void Emu::PrintMemory(int p_address) {
@@ -74,7 +105,6 @@ int Emu::get_program_counter() {
 
 void Emu::set_index_register(int p_new_value) {
   index_register_.Write(std::bitset<16>(p_new_value));
-  std::cout << "Set index register: " << std::hex << p_new_value << std::endl;
 }
 
 std::bitset<16> Emu::get_index_register() {
@@ -124,7 +154,7 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       int rows = fourth.to_ulong();
       int x_coord = variable_registers_[second.to_ulong()].Read().to_ulong();
       int y_coord = variable_registers_[third.to_ulong()].Read().to_ulong();
-      Display(rows, x_coord, y_coord);
+      DisplaySprite(rows, x_coord, y_coord);
       break;
     }
     case 0x7: {
@@ -175,7 +205,7 @@ void Emu::AddValToRegister(int p_register, int p_val) {
   }
 } 
 
-void Emu::Display(int p_rows, int p_x_coord, int p_y_coord) {
+void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
   // For p_rows:
   for (int i = 0; i < p_rows; i++) { 
     // Grab the current byte of the sprite from address stored in index register + i

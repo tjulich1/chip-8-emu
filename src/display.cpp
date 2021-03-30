@@ -10,6 +10,31 @@ Display::Display() {
   }
 }
 
+Display::Display(SDL_Renderer* p_renderer) {
+  renderer_ = p_renderer;
+  for (int i = 0; i < pixels_.size(); i++) {
+    pixels_[i].fill(0);
+  }
+}
+
+void Display::Render() {
+  SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 255);
+  for (int i = 0; i < pixels_.size(); i++) {
+    std::array<bool, PIXEL_WIDTH> current_row = pixels_[i];
+    for (int j = 0; j < PIXEL_WIDTH; j++) {
+      if (current_row[j]) {
+        SDL_Rect rect{
+          j*10,
+          i*10,
+          10,
+          10
+        };
+        SDL_RenderFillRect(renderer_, &rect);
+      }
+    }
+  }
+}
+
 void Display::SetPixel(int p_row, int p_col, bool p_value) {
   if (!(p_row < 0 || p_row > PIXEL_HEIGHT || p_col < 0 || p_col > PIXEL_WIDTH)) {
     pixels_[p_row][p_col] = p_value;
