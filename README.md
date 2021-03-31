@@ -10,8 +10,6 @@ This is my Chip-8 emulator project which im basing off the following specs:
   - 60hz delay timer
   - 60hz sound timer
 
-Currently, this emulator is only able to load and run the IBM chip-8 test program.
-
 Supported Instructions:
   - 0E00 - Clear screen
   - 1NNN - Jump
@@ -24,3 +22,7 @@ Supported Instructions:
   - FX65 - Read memory to registers.
 
 Aiming to support all classic chip-8 instructions.
+
+Currently, this emulator is only able to load and run the IBM chip-8 test program.
+
+![Capture](https://user-images.githubusercontent.com/33639246/113223386-e6eec480-923d-11eb-8411-ddf3da644aa2.JPG)
