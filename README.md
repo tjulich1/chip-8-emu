@@ -13,11 +13,14 @@ This is my Chip-8 emulator project which im basing off the following specs:
 Currently, this emulator is only able to load and run the IBM chip-8 test program.
 
 Supported Instructions:
+  - 0E00 - Clear screen
   - 1NNN - Jump
   - 6XNN - Set register VX
   - 7XNN - Add to register VX
   - ANNN - Set index register
   - DXYN - Draw 
-  - 0E00 - Clear screen
+  - FX33 - Store binary coded decimal
+  - FX55 - Store registers to memory.
+  - FX65 - Read memory to registers.
 
 Aiming to support all classic chip-8 instructions.
