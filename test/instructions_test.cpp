@@ -1,6 +1,8 @@
 #include "catch.hpp"
 #include "../src/emu.hpp "
 
+#include <iostream>
+
 Emu test_emu;
 
 TEST_CASE("Testing clear screen instruction", "[instructions]") {
@@ -83,4 +85,46 @@ TEST_CASE("Testing set index register instruction", "[instructions]") {
   test_emu.Step();
 
   REQUIRE(test_emu.get_index_register().to_ulong() == 0xF);
+}
+
+TEST_CASE("Testing save registers to memory instruction", "[instructions]") {
+  // Instruction to save registers V0 -> V2 to memory.
+  test_emu.LoadInstruction(0, std::bitset<16>(0xF255));
+
+  // Set the values of those registers.
+  test_emu.set_register(0, 0x11);
+  test_emu.set_register(1, 0x23);
+  test_emu.set_register(2, 0x67);
+
+  test_emu.set_program_counter(0);
+  test_emu.set_index_register(0xF);
+
+  REQUIRE(test_emu.get_register(0) == 0x11);
+  REQUIRE(test_emu.get_register(1) == 0x23);
+  REQUIRE(test_emu.get_register(2) == 0x67);
+
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_memory(0xF) == 0x11);
+  REQUIRE(test_emu.get_memory(0x10) == 0x23);
+  REQUIRE(test_emu.get_memory(0x11) == 0x67);
+
+  REQUIRE(test_emu.get_index_register().to_ulong() == 0x12);
+}
+
+TEST_CASE("Testing save registers to memory instruction 2", "[instructions]") {
+  std::vector<int> register_values;
+  for (int i = 0; i <= 0xF; i++) {
+    register_values.push_back(rand() % 0xFF);
+    test_emu.set_register(i, register_values[i]);
+  }
+
+  test_emu.LoadInstruction(0, std::bitset<16>(0xFF55));
+  test_emu.set_index_register(0xF);
+  test_emu.set_program_counter(0);
+  test_emu.Step();
+
+  for (int i = 0; i <= 0xF; i++) {
+    REQUIRE(test_emu.get_memory(0xF + i) == register_values[i]);
+  }
 }

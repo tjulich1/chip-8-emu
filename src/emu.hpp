@@ -91,6 +91,11 @@ public:
    * Store the value p_new_value in variable register p_register.
    */
   void set_register(int p_register, int p_new_value);
+
+  /**
+   * Gets the value of stored in memory at the given address.
+   */
+  int get_memory(int p_address);
 private:
 
   /**
@@ -155,6 +160,12 @@ private:
    * written back to the same register.
    */
   void AddValToRegister(int p_register, int p_val);
+
+  /**
+   * Stores register V0 -> Vp_register_number in memory starting at the address stored in the index
+   * register.
+   */
+  void StoreRegisters(int p_register_number);
 
   /**
    * Draws a sprite that is p_rows tall starting at p_xcoord, p_ycoord. The bytes used to draw each
