@@ -19,8 +19,14 @@ class Emu {
 
 public: 
 
+  /**
+   * Default constructor.
+   */
   Emu();
 
+  /**
+   * Constructor that takes SDL_Renderer pointer that the emulator display should be rendered to.
+   */
   Emu(SDL_Renderer* p_renderer);
 
   /**
@@ -29,6 +35,9 @@ public:
    */
   void LoadInstruction(int p_address, std::bitset<16> p_instruction);
   
+  /**
+   * Starts emulator execution starting at current PC.
+   */
   void Start();
 
   /**
@@ -96,6 +105,11 @@ public:
    * Gets the value of stored in memory at the given address.
    */
   int get_memory(int p_address);
+
+  /**
+   * Stores the value p_value in memory at p_addres.
+   */
+  void set_memory(int p_address, int p_value);
 private:
 
   /**
@@ -165,7 +179,19 @@ private:
    * Stores register V0 -> Vp_register_number in memory starting at the address stored in the index
    * register.
    */
-  void StoreRegisters(int p_register_number);
+  void StoreRegistersToMem(int p_register_number);
+
+  /**
+   * Stores the bytes found at mem[index] -> mem[index + p_register_number] into variable registers
+   * V0 -> p_register_number
+   */
+  void ReadMemToRegisters(int p_register_number);
+
+  /**
+   * Stores the binary coded decimal equivalent of the value in variable register p_register_number
+   * into memory at mem[index], mem[index+1], mem[index+2].
+   */
+  void StoreBinaryCodedDecimal(int p_register_number);
 
   /**
    * Draws a sprite that is p_rows tall starting at p_xcoord, p_ycoord. The bytes used to draw each
@@ -175,7 +201,12 @@ private:
   void DisplaySprite(int p_rows, int p_x_coord, int p_y_coord);
 
   /**
-   * Stores basic sprites for fonts into memory.
+   * Helper method to decode instructions that only take a single register number.
+   */
+  void DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction);
+
+  /**
+   * Stores basic sprites for fonts into memory from 0x50 -> 0x5F
    */
   void InitializeFonts();
 };

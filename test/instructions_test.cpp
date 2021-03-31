@@ -119,12 +119,71 @@ TEST_CASE("Testing save registers to memory instruction 2", "[instructions]") {
     test_emu.set_register(i, register_values[i]);
   }
 
+  int mem_start = 0xF;
+
   test_emu.LoadInstruction(0, std::bitset<16>(0xFF55));
-  test_emu.set_index_register(0xF);
+  test_emu.set_index_register(mem_start);
   test_emu.set_program_counter(0);
   test_emu.Step();
 
   for (int i = 0; i <= 0xF; i++) {
-    REQUIRE(test_emu.get_memory(0xF + i) == register_values[i]);
+    REQUIRE(test_emu.get_memory(mem_start + i) == register_values[i]);
   }
+
+  REQUIRE(test_emu.get_index_register() == (mem_start + 0xF + 1)); 
+}
+
+TEST_CASE("Testing read mem to registers instruction", "[instructions]") {
+  int mem_start = 0xF;
+
+  // Generate and store random bytes in memory from address 0xF -> 0x1E
+  std::vector<int> random_byte_values;
+  for (int i = 0; i <= 0xF; i++) {
+    random_byte_values.push_back(rand() % 0xFF);
+    test_emu.set_memory(mem_start + i, random_byte_values[i]);
+  }
+
+  // Set up emulator to read bytes into registers V0 -> VF
+  test_emu.set_index_register(mem_start);
+  test_emu.set_program_counter(0);
+  test_emu.LoadInstruction(0, std::bitset<16>(0xFF65));
+  test_emu.Step();
+
+  // Ensure that the register successfully read in the correct bytes.
+  for (int i = 0; i <= 0xF; i++) {
+    REQUIRE(test_emu.get_register(i) == random_byte_values[i]);
+  }
+
+  // Also ensure the index register was updated correctly.
+  REQUIRE(test_emu.get_index_register() == mem_start + 0xF + 1);
+}
+
+TEST_CASE("Testing store binary coded decimal to memory", "[instructions]") {
+  test_emu.set_program_counter(0);
+  test_emu.set_index_register(0xF);
+
+  test_emu.set_register(0, 0xFF);
+
+  // Instruction to store binary coded decimal value in V0 to memory.
+  test_emu.LoadInstruction(0, std::bitset<16>(0xF033));
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_memory(0xF) == 0x2);
+  REQUIRE(test_emu.get_memory(0xF + 1) == 0x5);
+  REQUIRE(test_emu.get_memory(0xF + 2) == 0x5);
+}
+
+TEST_CASE("Testing store binary coded decimal to memory 2", "[instructions]") {
+  test_emu.set_program_counter(0);
+  test_emu.set_index_register(0xF);
+
+  test_emu.set_register(0, 0xF);
+
+  // Instruction to store binary coded decimal value in V0 to memory.
+  test_emu.LoadInstruction(0, std::bitset<16>(0xF033));
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_memory(0xF) == 0x0);
+  REQUIRE(test_emu.get_memory(0xF + 1) == 0x1);
+  REQUIRE(test_emu.get_memory(0xF + 2) == 0x5);
 }

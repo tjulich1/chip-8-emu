@@ -134,6 +134,10 @@ int Emu::get_memory(int p_address) {
   return memory_.Read(p_address).to_ulong();
 }
 
+void Emu::set_memory(int p_address, int p_value) {
+  memory_.Write(p_address, std::bitset<8>(p_value));
+}
+
 void Emu::Decode(std::bitset<16> p_instruction) {
 
   std::bitset<16> first_mask(0xF000);
@@ -183,7 +187,8 @@ void Emu::Decode(std::bitset<16> p_instruction) {
     }
     case 0xF: {
       int register_number = second.to_ulong();
-      StoreRegisters(register_number);
+      std::bitset<8> last_bytes((p_instruction & (third_mask | fourth_mask)).to_ulong());
+      DecodeRegisterOps(register_number, last_bytes);
     }
   }
 }
@@ -217,13 +222,37 @@ void Emu::AddValToRegister(int p_register, int p_val) {
   }
 } 
 
-void Emu::StoreRegisters(int p_register_number) {
+void Emu::StoreRegistersToMem(int p_register_number) {
   for (int i = 0; i <= p_register_number; i++) {
     int address_to_write = index_register_.Read().to_ulong() + i;
     std::bitset<8> value_to_write = variable_registers_[i].Read();
     memory_.Write(address_to_write, value_to_write);
   }
   index_register_.Write(std::bitset<16>(index_register_.Read().to_ulong() + p_register_number + 1));
+}
+
+void Emu::ReadMemToRegisters(int p_register_number) {
+  int start_mem = index_register_.Read().to_ulong();
+  for (int i = 0; i <= p_register_number; i++) {
+    variable_registers_[i].Write(memory_.Read(start_mem + i));
+  }
+  index_register_.Write(start_mem + p_register_number + 1);
+}
+
+void Emu::StoreBinaryCodedDecimal(int p_register_number) {
+  int value_to_store = variable_registers_[p_register_number].Read().to_ulong();
+
+  // Extract the values 
+  int hundreds_place = value_to_store / 100;
+  int tens_place = (value_to_store / 10) % 10;
+  int ones_place = (value_to_store % 100) % 10;
+
+  int mem_start = index_register_.Read().to_ulong();
+
+  // Store each digit in its own byte in memory.
+  memory_.Write(mem_start, std::bitset<8>(hundreds_place));
+  memory_.Write(mem_start + 1, std::bitset<8>(tens_place));
+  memory_.Write(mem_start + 2, std::bitset<8>(ones_place));
 }
 
 void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
@@ -250,6 +279,20 @@ void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
     if (p_y_coord + i >= main_display_.get_pixel_height()) {
       break;
     }
+  }
+}
+
+void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction) {
+  switch(p_instruction.to_ulong()) {
+    case 0x33: 
+      StoreBinaryCodedDecimal(p_register_number);
+      break;
+    case 0x55:
+      StoreRegistersToMem(p_register_number);
+      break; 
+    case 0x65:
+      ReadMemToRegisters(p_register_number);
+      break;
   }
 }
 
