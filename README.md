@@ -16,10 +16,13 @@ Supported Instructions:
   - 6XNN - Set register VX
   - 7XNN - Add to register VX
   - ANNN - Set index register
-  - DXYN - Draw 
+  - DXYN - Draw sprite
+  - FX15 - Set delay timer
+  - FX18 - Set sound timer
+  - FX1E - Add register to index
   - FX33 - Store binary coded decimal
-  - FX55 - Store registers to memory.
-  - FX65 - Read memory to registers.
+  - FX55 - Store registers to memory
+  - FX65 - Read memory to registers
 
 Aiming to support all classic chip-8 instructions.
 
