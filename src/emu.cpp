@@ -200,6 +200,12 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       Jump(new_program_counter);
       break;
     }
+    case 0x3: {
+      int value_to_check = (p_instruction & (third_mask | fourth_mask)).to_ulong();
+      SkipIfEqual(second.to_ulong(), value_to_check);
+      break;
+    }
+    
     case 0xD: {
       int rows = fourth.to_ulong();
       int x_coord = variable_registers_[second.to_ulong()].Read().to_ulong();
@@ -305,6 +311,12 @@ void Emu::SetSoundTimer(int p_register_number) {
 
 void Emu::SetDelayTimer(int p_register_number) {
   delay_timer_ = variable_registers_[p_register_number].Read().to_ulong();
+}
+
+void Emu::SkipIfEqual(int p_register_number, int p_value) {
+  if (variable_registers_[p_register_number].Read().to_ulong() == p_value) {
+    program_counter_ += 2;
+  }
 }
 
 void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {

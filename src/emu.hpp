@@ -241,6 +241,11 @@ private:
   void SetDelayTimer(int p_register_number);
 
   /**
+   * Skips the next instruction if the value in p_register_number == p_value.
+   */
+  void SkipIfEqual(int p_register_number, int p_value);
+
+  /**
    * Draws a sprite that is p_rows tall starting at p_xcoord, p_ycoord. The bytes used to draw each
    * row should be stored in memory, and the address of the first byte that should be drawn should 
    * be stored in the index register. 

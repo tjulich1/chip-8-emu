@@ -225,3 +225,11 @@ TEST_CASE("Testing set delay timer instruction", "[instructions]") {
   test_emu.Step();
   REQUIRE(test_emu.get_delay_timer() == 0x4F);
 }
+
+TEST_CASE("Testing skip if equal instruction", "[instructions]") {
+  test_emu.set_program_counter(0);
+  test_emu.LoadInstruction(0, std::bitset<16>(0x3022));
+  test_emu.set_register(0, 0x22);
+  test_emu.Step();
+  REQUIRE(test_emu.get_program_counter() == 4);
+}

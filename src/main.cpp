@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     // emu.Step();
     // emu.PrintRegisters();
 
-    std::ifstream input("C:\\Users\\tjulich\\Desktop\\chip-8_roms\\ibm_logo.ch8");
+    std::ifstream input("C:\\Users\\tjulich\\Desktop\\chip-8_roms\\test_opcode.ch8");
     std::vector<char> bytes(
       (std::istreambuf_iterator<char>(input)),
       (std::istreambuf_iterator<char>())
@@ -52,10 +52,13 @@ int main(int argc, char* argv[]) {
       std::bitset<8> first_bits((int)first_byte);
       std::bitset<8> second_bits((int)second_byte);
       std::bitset<16> instruction(first_bits.to_string() + second_bits.to_string());
+      std::cout << instruction.to_string() << std::endl;
       emu.LoadInstruction(0x200 + i, instruction);
     }
-    
+
     emu.Start();
+
+    SDL_Delay(2000);
 
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
