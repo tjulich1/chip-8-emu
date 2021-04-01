@@ -112,6 +112,16 @@ public:
   void set_memory(int p_address, int p_value);
 private:
 
+  enum CustomEvents {
+    DELAY_TICK, 
+    SOUND_TICK,
+  };
+
+  /**
+   * Event handler used to handle input and timer events.
+   */
+  SDL_Event event_handler_;
+
   /**
    * 16 8-bit registers used to store program data. Registers are usually indexed 0x0 thru 0xF.
    */
@@ -136,6 +146,16 @@ private:
    * Counter that keeps track of the memory address of the next instruction to fetch.
    */
   int program_counter_;
+
+  /**
+   * Delay timer used by chip-8 programs. Will decrease at a rate of 60Hz until it reaches 0.
+   */ 
+  int delay_timer_;
+
+  /**
+   * Timer used by programs utilizing sound. Will decrease at a rate of 60Hz until it reaches 0.
+   */
+  int sound_timer_;
 
   /**
    * 16-Bit index register.
@@ -194,6 +214,12 @@ private:
   void StoreBinaryCodedDecimal(int p_register_number);
 
   /**
+   * Adds the value stored in register p_register_number to the index counter, and stores back in 
+   * the index counter.
+   */
+  void AddRegisterToIndex(int p_register_number);
+
+  /**
    * Draws a sprite that is p_rows tall starting at p_xcoord, p_ycoord. The bytes used to draw each
    * row should be stored in memory, and the address of the first byte that should be drawn should 
    * be stored in the index register. 
@@ -209,6 +235,24 @@ private:
    * Stores basic sprites for fonts into memory from 0x50 -> 0x5F
    */
   void InitializeFonts();
+
+  void DelayTick();
+
+  void SoundTick();
+
+  /**
+   * When an emulator is started, it uses this callback and SDL_AddTimer to register to have DelayTick()
+   * method called every p_interval m.s.
+   */
+  static Uint32 delay_timer_callback(Uint32 p_interval, void* p_param);
+
+  /**
+   * When an emulator is started, it uses this callback and SDL_AddTimer to register to have SoundTick()
+   * method called every p_interval m.s.
+   */
+  static Uint32 sound_timer_callback(Uint32 p_interval, void* p_param);
 };
+
+
 
 #endif

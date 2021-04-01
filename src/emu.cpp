@@ -12,11 +12,44 @@ Emu::Emu(SDL_Renderer* p_renderer) {
   renderer_ = p_renderer;
   main_display_ = Display(renderer_);
   InitializeFonts();
+  sound_timer_ = 0;
+  delay_timer_ = 0;
 }
 
 void Emu::Start() {
+  SDL_AddTimer(1000, delay_timer_callback, this);
+  SDL_AddTimer(1000, sound_timer_callback, this);
+
   bool quit = false;
   while (!quit) {
+
+    SDL_Event e;
+    while(SDL_PollEvent(&e)) {
+
+      switch (e.type) {
+        case SDL_QUIT: {
+          quit = true;
+          break;
+        }
+        case SDL_USEREVENT:
+          switch (e.user.code) {
+            case DELAY_TICK:
+              if (delay_timer_ > 0) {
+                delay_timer_--;
+                std::cout << "Delay tick" << std::endl;
+              }
+              break;
+            case SOUND_TICK:
+              if (sound_timer_ > 0) {
+                sound_timer_--;
+                std::cout << "Sound tick" << std::endl;
+              }
+              break;
+          }
+          break;
+      }
+    }
+
     std::bitset<16> current_instruction = Fetch();
     if (current_instruction != std::bitset<16>(0x000)) {
       Decode(current_instruction);
@@ -114,12 +147,10 @@ std::bitset<16> Emu::get_index_register() {
 int Emu::get_register(int p_register) {
   // Initialize return value to zero.
   std::bitset<8> value(0);
-
   if (p_register > -1 && p_register < 16) {
     // Set return value to register value if p_register is valid.
     value = variable_registers_[p_register].Read();
   }
-
   return value.to_ulong();
 }
 
@@ -139,15 +170,14 @@ void Emu::set_memory(int p_address, int p_value) {
 }
 
 void Emu::Decode(std::bitset<16> p_instruction) {
-
   std::bitset<16> first_mask(0xF000);
   std::bitset<16> second_mask(0x0F00);
   std::bitset<16> third_mask(0x00F0);
   std::bitset<16> fourth_mask(0x000F);
 
-  // Grab second
+  // Grab second nibble
   std::bitset<4> second(p_instruction.to_string().substr(4, 4));
-  // Grab third
+  // Grab third nibble
   std::bitset<4> third(p_instruction.to_string().substr(8, 4));
   // Grab far right nibble
   std::bitset<4> fourth(p_instruction.to_string().substr(12, 4));
@@ -255,6 +285,12 @@ void Emu::StoreBinaryCodedDecimal(int p_register_number) {
   memory_.Write(mem_start + 2, std::bitset<8>(ones_place));
 }
 
+void Emu::AddRegisterToIndex(int p_register_number) {
+  int index_value = index_register_.Read().to_ulong();
+  int value_to_add = variable_registers_[p_register_number].Read().to_ulong();
+  index_register_.Write(std::bitset<16>(index_value + value_to_add));
+}
+
 void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
   // For p_rows:
   for (int i = 0; i < p_rows; i++) { 
@@ -284,6 +320,9 @@ void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
 
 void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction) {
   switch(p_instruction.to_ulong()) {
+    case 0x1E:
+      AddRegisterToIndex(p_register_number);
+      break;
     case 0x33: 
       StoreBinaryCodedDecimal(p_register_number);
       break;
@@ -319,4 +358,34 @@ void Emu::InitializeFonts() {
     std::bitset<8> current_byte(font_bytes[i]);
     memory_.Write(0x50 + i, current_byte);
   }
+}
+
+void Emu::DelayTick() {
+  std::cout << "Pushed delay event" << std::endl;
+  SDL_Event event;
+  event.user.code = DELAY_TICK;
+  event.type = SDL_USEREVENT;
+  SDL_PushEvent(&event);
+}
+
+void Emu::SoundTick() {
+  std::cout << "Pushed sound event" << std::endl;
+  SDL_Event event;
+  event.user.code = SOUND_TICK;
+  event.type = SDL_USEREVENT;
+  SDL_PushEvent(&event);
+}
+
+Uint32 Emu::delay_timer_callback(Uint32 p_interval, void* param) {
+  // Cast the void pointer to a pointer to the emulator we are wanting to call DelayTick on.
+  Emu* emu = static_cast<Emu*>(param);
+  emu->DelayTick();
+  return p_interval;
+}
+
+Uint32 Emu::sound_timer_callback(Uint32 p_interval, void* param) {
+  // Cast the void pointer to a pointer to the emulator we are wanting to call DelayTick on.
+  Emu* emu = static_cast<Emu*>(param);
+  emu->SoundTick();
+  return p_interval;
 }

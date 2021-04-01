@@ -187,3 +187,25 @@ TEST_CASE("Testing store binary coded decimal to memory 2", "[instructions]") {
   REQUIRE(test_emu.get_memory(0xF + 1) == 0x1);
   REQUIRE(test_emu.get_memory(0xF + 2) == 0x5);
 }
+
+TEST_CASE("Testing add register to index instruction", "[instructions]") {
+  test_emu.set_index_register(0x234);
+  test_emu.set_register(0, 0x45);
+  
+  test_emu.set_program_counter(0);
+  test_emu.LoadInstruction(0, std::bitset<16>(0xF01E));
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_index_register().to_ulong() == 0x279);
+}
+
+TEST_CASE("Testing add register to index instruction 2", "[instructions]") {
+  test_emu.set_index_register(0x4567);
+  test_emu.set_register(0, 0x0);
+  
+  test_emu.set_program_counter(0);
+  test_emu.LoadInstruction(0, std::bitset<16>(0xF01E));
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_index_register().to_ulong() == 0x4567);
+}
