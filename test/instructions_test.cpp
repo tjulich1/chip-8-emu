@@ -209,3 +209,19 @@ TEST_CASE("Testing add register to index instruction 2", "[instructions]") {
 
   REQUIRE(test_emu.get_index_register().to_ulong() == 0x4567);
 }
+
+TEST_CASE("Testing set sound timer instruction", "[instructions]") {
+  test_emu.set_program_counter(0);
+  test_emu.LoadInstruction(0, std::bitset<16>(0xF018));
+  test_emu.set_register(0, 5);
+  test_emu.Step();
+  REQUIRE(test_emu.get_sound_timer() == 5);
+}
+
+TEST_CASE("Testing set delay timer instruction", "[instructions]") {
+  test_emu.set_program_counter(0);
+  test_emu.LoadInstruction(0, std::bitset<16>(0xF015));
+  test_emu.set_register(0, 0x4F);
+  test_emu.Step();
+  REQUIRE(test_emu.get_delay_timer() == 0x4F);
+}

@@ -169,6 +169,14 @@ void Emu::set_memory(int p_address, int p_value) {
   memory_.Write(p_address, std::bitset<8>(p_value));
 }
 
+int Emu::get_sound_timer() {
+  return sound_timer_;
+}
+
+int Emu::get_delay_timer() {
+  return delay_timer_;
+}
+
 void Emu::Decode(std::bitset<16> p_instruction) {
   std::bitset<16> first_mask(0xF000);
   std::bitset<16> second_mask(0x0F00);
@@ -291,6 +299,14 @@ void Emu::AddRegisterToIndex(int p_register_number) {
   index_register_.Write(std::bitset<16>(index_value + value_to_add));
 }
 
+void Emu::SetSoundTimer(int p_register_number) {
+  sound_timer_ = variable_registers_[p_register_number].Read().to_ulong();
+}
+
+void Emu::SetDelayTimer(int p_register_number) {
+  delay_timer_ = variable_registers_[p_register_number].Read().to_ulong();
+}
+
 void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
   // For p_rows:
   for (int i = 0; i < p_rows; i++) { 
@@ -320,6 +336,11 @@ void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
 
 void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction) {
   switch(p_instruction.to_ulong()) {
+    case 0x15:
+      SetDelayTimer(p_register_number);
+    case 0x18:
+      SetSoundTimer(p_register_number);
+      break;
     case 0x1E:
       AddRegisterToIndex(p_register_number);
       break;

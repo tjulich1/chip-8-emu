@@ -110,6 +110,17 @@ public:
    * Stores the value p_value in memory at p_addres.
    */
   void set_memory(int p_address, int p_value);
+
+  /**
+   * Returns the current value of the sound timer.
+   */
+  int get_sound_timer();
+
+  /**
+   * Returns the current value of the delay timer.
+   */
+  int get_delay_timer();
+
 private:
 
   enum CustomEvents {
@@ -218,6 +229,16 @@ private:
    * the index counter.
    */
   void AddRegisterToIndex(int p_register_number);
+
+  /**
+   * Sets the sound timer to the value stored in register p_register_number.
+   */
+  void SetSoundTimer(int p_register_number);
+
+  /**
+   * Sets the delay timer to the value stored in register p_register_number.
+   */
+  void SetDelayTimer(int p_register_number);
 
   /**
    * Draws a sprite that is p_rows tall starting at p_xcoord, p_ycoord. The bytes used to draw each
