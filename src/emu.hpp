@@ -191,6 +191,16 @@ private:
   void Decode(std::bitset<16> p_instruction);
   
   /**
+   * Helper method to decode instructions that only relate to a single register.
+   */
+  void DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction);
+
+  /**
+   * Helper method that decodes instructions that relate to arithmetic operations between registers.
+   */
+  void DecodeRegisterArithmetic(std::bitset<16> p_instruction);
+
+  /**
    * Used to reset the main display to all blank pixels.
    */
   void ClearScreen();
@@ -246,6 +256,11 @@ private:
   void SkipIfEqual(int p_register_number, int p_value);
 
   /**
+   * Stores the value found in source register into destination register. 
+   */
+  void StoreRegisterXInY(int p_src_register, int p_dest_register);
+
+  /**
    * Draws a sprite that is p_rows tall starting at p_xcoord, p_ycoord. The bytes used to draw each
    * row should be stored in memory, and the address of the first byte that should be drawn should 
    * be stored in the index register. 
@@ -253,17 +268,18 @@ private:
   void DisplaySprite(int p_rows, int p_x_coord, int p_y_coord);
 
   /**
-   * Helper method to decode instructions that only take a single register number.
-   */
-  void DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction);
-
-  /**
    * Stores basic sprites for fonts into memory from 0x50 -> 0x5F
    */
   void InitializeFonts();
 
+  /**
+   * Function that on emulator start, is called once every second to decrement delay counter.
+   */
   void DelayTick();
 
+  /**
+   * Function that on emulator start, is called once every second to decrement the sound counter.
+   */
   void SoundTick();
 
   /**

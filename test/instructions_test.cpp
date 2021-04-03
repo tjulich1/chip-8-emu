@@ -233,3 +233,82 @@ TEST_CASE("Testing skip if equal instruction", "[instructions]") {
   test_emu.Step();
   REQUIRE(test_emu.get_program_counter() == 4);
 }
+
+TEST_CASE("Testing skip if equal instruction 2", "[instructions]") {
+  const int CASES = 1000;
+
+  for (int i = 0; i < CASES; i++) {
+    // Generate 2 values between 0x0 and 0xF to give okay chance for values to be equal.
+    int val_one = rand() % 0x10;
+    std::bitset<8> val_two(rand() % 0x10);
+
+    std::bitset<4> rand_register(rand() % 16);
+
+    test_emu.set_program_counter(0);
+    test_emu.set_register(rand_register.to_ulong(), val_one);
+
+    // Expect not to have values be equal, i.e. not to skip instruction.
+    int expected_prog_counter = 2;
+
+    if (val_one == val_two.to_ulong()) {
+      expected_prog_counter = 4;
+    }
+
+    std::bitset<16> instruction("0011" + rand_register.to_string() + val_two.to_string());
+    test_emu.LoadInstruction(0, instruction);
+    test_emu.Step();
+
+    REQUIRE(test_emu.get_program_counter() == expected_prog_counter);
+  }
+}
+
+TEST_CASE("Testing store register vy in vx" , "[instructions]") {
+  // Load instruction to store register 2's value in register 1
+  test_emu.LoadInstruction(0, 0x8120);
+
+  // Clear destination register and give source register values.
+  test_emu.set_register(1, 0x0);
+  test_emu.set_register(2, 0xA9);
+
+  test_emu.set_program_counter(0);
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_register(1) == test_emu.get_register(2));
+}
+
+TEST_CASE("Testing store register vx value back to itself", "[instructions]") {
+  const int value = 0x4D;
+
+  test_emu.set_register(0, value);
+
+  // Instruction to store register 0 in register 0.
+  test_emu.LoadInstruction(0, 0x8000);
+  test_emu.set_program_counter(0);
+  test_emu.Step();
+
+  // Ensure that the instruction didn't affect value stored.
+  REQUIRE(test_emu.get_register(0) == value);
+}
+
+TEST_CASE("Testing store register vy in vx 2" , "[instructions]") {
+  const int CASES = 1000;
+  
+  for (int i = 0; i < CASES; i++) {
+
+    // Generate nibbles for src and destination registers.
+    std::bitset<4> dest_register(rand() % 16);
+    std::bitset<4> src_register(rand() % 16);
+
+    // Build instruction to store src register value in destination register and load.
+    std::bitset<16> instruction("1000" + dest_register.to_string() + src_register.to_string() + "0000");
+    test_emu.LoadInstruction(0, instruction);
+    test_emu.set_program_counter(0);
+
+    // Generate random value between 0x00 and 0xFF and store in source register.
+    int value = rand() % 0x100;
+    test_emu.set_register(src_register.to_ulong(), value);
+    
+    test_emu.Step();
+    REQUIRE(test_emu.get_register(dest_register.to_ulong()) == value);
+  }
+}

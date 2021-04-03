@@ -25,7 +25,7 @@ void Emu::Start() {
 
     SDL_Event e;
     while(SDL_PollEvent(&e)) {
-
+      std::cout << e.type << std::endl;
       switch (e.type) {
         case SDL_QUIT: {
           quit = true;
@@ -54,8 +54,6 @@ void Emu::Start() {
     if (current_instruction != std::bitset<16>(0x000)) {
       Decode(current_instruction);
       Render();
-    } else {
-      quit = true;
     } 
   }
 }
@@ -229,12 +227,54 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       set_index_register((p_instruction & (second_mask | third_mask | fourth_mask)).to_ulong());
       break;
     }
+    case 0x8: {
+      DecodeRegisterArithmetic(p_instruction);
+      break;
+    }
     case 0xF: {
       int register_number = second.to_ulong();
       std::bitset<8> last_bytes((p_instruction & (third_mask | fourth_mask)).to_ulong());
       DecodeRegisterOps(register_number, last_bytes);
     }
   }
+}
+
+void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction) {
+  switch(p_instruction.to_ulong()) {
+    case 0x15:
+      SetDelayTimer(p_register_number);
+    case 0x18:
+      SetSoundTimer(p_register_number);
+      break;
+    case 0x1E:
+      AddRegisterToIndex(p_register_number);
+      break;
+    case 0x33: 
+      StoreBinaryCodedDecimal(p_register_number);
+      break;
+    case 0x55:
+      StoreRegistersToMem(p_register_number);
+      break; 
+    case 0x65:
+      ReadMemToRegisters(p_register_number);
+      break;
+  }
+}
+
+void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
+  std::bitset<16> second_byte_mask = std::bitset<16>(0x0F00);
+  std::bitset<16> third_byte_mask = std::bitset<16>(0x00F0);
+  std::bitset<16> fourth_byte_mask = std::bitset<16>(0x000F);
+
+  switch((p_instruction & fourth_byte_mask).to_ulong()) {
+    case 0x0: {
+      int source_register = ((p_instruction & third_byte_mask) >> 4).to_ulong();
+      int destination_register = ((p_instruction & second_byte_mask) >> 8).to_ulong();
+      StoreRegisterXInY(source_register, destination_register);
+      break;
+    }
+  }
+
 }
 
 std::bitset<16> Emu::Fetch() {
@@ -319,6 +359,10 @@ void Emu::SkipIfEqual(int p_register_number, int p_value) {
   }
 }
 
+void Emu::StoreRegisterXInY(int p_src_register, int p_dest_register) {
+  variable_registers_[p_dest_register].Write(variable_registers_[p_src_register].Read());
+}
+
 void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
   // For p_rows:
   for (int i = 0; i < p_rows; i++) { 
@@ -343,28 +387,6 @@ void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
     if (p_y_coord + i >= main_display_.get_pixel_height()) {
       break;
     }
-  }
-}
-
-void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction) {
-  switch(p_instruction.to_ulong()) {
-    case 0x15:
-      SetDelayTimer(p_register_number);
-    case 0x18:
-      SetSoundTimer(p_register_number);
-      break;
-    case 0x1E:
-      AddRegisterToIndex(p_register_number);
-      break;
-    case 0x33: 
-      StoreBinaryCodedDecimal(p_register_number);
-      break;
-    case 0x55:
-      StoreRegistersToMem(p_register_number);
-      break; 
-    case 0x65:
-      ReadMemToRegisters(p_register_number);
-      break;
   }
 }
 
