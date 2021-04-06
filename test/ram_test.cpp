@@ -18,6 +18,5 @@ TEST_CASE("Testing ram read write", "[hardware]") {
 
 TEST_CASE("Testing bad Read addresses", "[hardware]") {
   int bad_address = -10;
-  std::bitset<8> expected_value("00000000");
-  REQUIRE(test_ram.Read(bad_address).to_ulong() == expected_value.to_ulong());
+  REQUIRE(test_ram.Read(bad_address).to_ulong() == 0);
 }

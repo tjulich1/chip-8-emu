@@ -3,13 +3,14 @@
 #ifndef EMU_HPP
 #define EMU_HPP
 
-#include "ram.hpp"
 #include "display.hpp"
+#include "keyboard_input.hpp"
+#include "ram.hpp"
 #include "register.hpp"
 
 #include <array>
-#include <vector>
 #include <bitset>
+#include <vector>
 
 /**
  * Main emulator class. Contains all the emulated harware components (ram, display, registers), as 
@@ -18,6 +19,11 @@
 class Emu {
 
 public: 
+
+  /**
+   * The address that programs should start at.
+   */
+  const int PROGRAM_START = 0x200;
 
   /**
    * Default constructor.
@@ -117,12 +123,20 @@ public:
   int get_sound_timer();
 
   /**
+   * Updates delay timer to new timer value.
+   */
+  void set_delay_timer(int p_new_timer_value);
+
+  /**
    * Returns the current value of the delay timer.
    */
   int get_delay_timer();
 
 private:
 
+  /**
+   * Enum used when 60hz timer events are added to the event queue.
+   */
   enum CustomEvents {
     DELAY_TICK, 
     SOUND_TICK,
@@ -132,6 +146,11 @@ private:
    * Event handler used to handle input and timer events.
    */
   SDL_Event event_handler_;
+
+  /**
+   * Object used to handle keyboard inputs.
+   */
+  KeyboardInput keyboard_;
 
   /**
    * 16 8-bit registers used to store program data. Registers are usually indexed 0x0 thru 0xF.
@@ -177,6 +196,11 @@ private:
    * Vector serving as a stack to store 16 bit return addresses.
    */
   std::vector<std::bitset<16>> ret_address_stack_;
+
+    /**
+   * Helper method used to handle user defined events.
+   */
+  void HandleUserEvent(SDL_Event p_e);
 
   /**
    * Method used to grab and return the instruction pointed to by program counter. The program counter

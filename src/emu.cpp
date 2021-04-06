@@ -1,19 +1,25 @@
 // Trent Julich ~ 27 March 2021
 
 #include "emu.hpp"
+#include "keyboard_input.hpp"
 
 #include <iostream>
 
 Emu::Emu() {
+  
   InitializeFonts();
+  program_counter_ =  PROGRAM_START;
+  set_index_register(0);
 }
 
 Emu::Emu(SDL_Renderer* p_renderer) {
   renderer_ = p_renderer;
   main_display_ = Display(renderer_);
   InitializeFonts();
+  set_index_register(0);
   sound_timer_ = 0;
   delay_timer_ = 0;
+  program_counter_ = PROGRAM_START;
 }
 
 void Emu::Start() {
@@ -32,20 +38,10 @@ void Emu::Start() {
           break;
         }
         case SDL_USEREVENT:
-          switch (e.user.code) {
-            case DELAY_TICK:
-              if (delay_timer_ > 0) {
-                delay_timer_--;
-                std::cout << "Delay tick" << std::endl;
-              }
-              break;
-            case SOUND_TICK:
-              if (sound_timer_ > 0) {
-                sound_timer_--;
-                std::cout << "Sound tick" << std::endl;
-              }
-              break;
-          }
+          HandleUserEvent(e);
+          break;
+        case SDL_KEYDOWN:
+          keyboard_.HandleKeyDown(e.key.keysym.scancode);
           break;
       }
     }
@@ -171,6 +167,10 @@ int Emu::get_sound_timer() {
   return sound_timer_;
 }
 
+void Emu::set_delay_timer(int p_new_timer_value) {
+  delay_timer_ = p_new_timer_value;
+}
+
 int Emu::get_delay_timer() {
   return delay_timer_;
 }
@@ -203,7 +203,11 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       SkipIfEqual(second.to_ulong(), value_to_check);
       break;
     }
-    
+    case 0xB: {
+      int value = (p_instruction & (second_mask | third_mask | fourth_mask)).to_ulong();
+      Jump(variable_registers_[0].Read().to_ulong() + value);
+      break;
+    }
     case 0xD: {
       int rows = fourth.to_ulong();
       int x_coord = variable_registers_[second.to_ulong()].Read().to_ulong();
@@ -235,12 +239,16 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       int register_number = second.to_ulong();
       std::bitset<8> last_bytes((p_instruction & (third_mask | fourth_mask)).to_ulong());
       DecodeRegisterOps(register_number, last_bytes);
+      break;
     }
   }
 }
 
 void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction) {
   switch(p_instruction.to_ulong()) {
+    case 0x7:
+      variable_registers_[p_register_number].Write(delay_timer_);
+      break;
     case 0x15:
       SetDelayTimer(p_register_number);
     case 0x18:
@@ -274,7 +282,23 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
       break;
     }
   }
+}
 
+void Emu::HandleUserEvent(SDL_Event e) {
+  switch (e.user.code) {
+    case DELAY_TICK:
+    std::cout << "Delay" << std::endl;
+      if (delay_timer_ > 0) {
+        delay_timer_--;
+      }
+      break;
+    case SOUND_TICK:
+    std::cout << "Sound" << std::endl;
+      if (sound_timer_ > 0) {
+        sound_timer_--;
+      }
+      break;
+  }
 }
 
 std::bitset<16> Emu::Fetch() {
