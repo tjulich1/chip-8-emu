@@ -31,7 +31,6 @@ void Emu::Start() {
 
     SDL_Event e;
     while(SDL_PollEvent(&e)) {
-      std::cout << e.type << std::endl;
       switch (e.type) {
         case SDL_QUIT: {
           quit = true;
@@ -235,6 +234,12 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       DecodeRegisterArithmetic(p_instruction);
       break;
     }
+    case 0x9: {
+      int register_one = second.to_ulong();
+      int register_two = third.to_ulong();
+      SkipIfRegistersNotEqual(register_one, register_two);
+      break;
+    }
     case 0xF: {
       int register_number = second.to_ulong();
       std::bitset<8> last_bytes((p_instruction & (third_mask | fourth_mask)).to_ulong());
@@ -274,26 +279,27 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
   std::bitset<16> third_byte_mask = std::bitset<16>(0x00F0);
   std::bitset<16> fourth_byte_mask = std::bitset<16>(0x000F);
 
+  int source_register = ((p_instruction & third_byte_mask) >> 4).to_ulong();
+  int destination_register = ((p_instruction & second_byte_mask) >> 8).to_ulong();
+
   switch((p_instruction & fourth_byte_mask).to_ulong()) {
-    case 0x0: {
-      int source_register = ((p_instruction & third_byte_mask) >> 4).to_ulong();
-      int destination_register = ((p_instruction & second_byte_mask) >> 8).to_ulong();
+    case 0x0: 
       StoreRegisterXInY(source_register, destination_register);
       break;
-    }
+    case 0xE:
+      ShiftRegisterLeft(source_register, destination_register); 
+      break;
   }
 }
 
 void Emu::HandleUserEvent(SDL_Event e) {
   switch (e.user.code) {
     case DELAY_TICK:
-    std::cout << "Delay" << std::endl;
       if (delay_timer_ > 0) {
         delay_timer_--;
       }
       break;
     case SOUND_TICK:
-    std::cout << "Sound" << std::endl;
       if (sound_timer_ > 0) {
         sound_timer_--;
       }
@@ -383,8 +389,25 @@ void Emu::SkipIfEqual(int p_register_number, int p_value) {
   }
 }
 
+void Emu::SkipIfRegistersNotEqual(int p_register_one, int p_register_two) {
+  int value_one = variable_registers_[p_register_one].Read().to_ulong();
+  int value_two = variable_registers_[p_register_two].Read().to_ulong();
+
+  if (value_one != value_two) {
+    program_counter_ += 2;
+  }
+}
+
 void Emu::StoreRegisterXInY(int p_src_register, int p_dest_register) {
   variable_registers_[p_dest_register].Write(variable_registers_[p_src_register].Read());
+}
+
+void Emu::ShiftRegisterLeft(int p_source_register, int p_destination_register) {
+  std::bitset<8> value = variable_registers_[p_source_register].Read();
+  std::bitset<8> least_sig_bit = value & std::bitset<8>(1);
+  value = value << 1;
+  variable_registers_[p_destination_register].Write(value);
+  variable_registers_[0xF].Write(least_sig_bit);
 }
 
 void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
@@ -440,7 +463,6 @@ void Emu::InitializeFonts() {
 }
 
 void Emu::DelayTick() {
-  std::cout << "Pushed delay event" << std::endl;
   SDL_Event event;
   event.user.code = DELAY_TICK;
   event.type = SDL_USEREVENT;
@@ -448,7 +470,6 @@ void Emu::DelayTick() {
 }
 
 void Emu::SoundTick() {
-  std::cout << "Pushed sound event" << std::endl;
   SDL_Event event;
   event.user.code = SOUND_TICK;
   event.type = SDL_USEREVENT;

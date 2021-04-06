@@ -30,6 +30,7 @@ KeyboardInput::KeyboardInput() {
 void KeyboardInput::HandleKeyDown(SDL_Scancode p_code) {
   if (key_mappings_.find(p_code) != key_mappings_.end()) {
     keys_[key_mappings_.find(p_code)->second] = 1;
+    std::cout << "Key " << std::hex << key_mappings_.find(p_code)->second << std::endl;
   }
 } 
 

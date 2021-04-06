@@ -280,9 +280,20 @@ private:
   void SkipIfEqual(int p_register_number, int p_value);
 
   /**
+   * Skips the next instruction if the two given registers do not hold equal values.
+   */
+  void SkipIfRegistersNotEqual(int p_register_one, int p_register_two);
+
+  /**
    * Stores the value found in source register into destination register. 
    */
   void StoreRegisterXInY(int p_src_register, int p_dest_register);
+
+  /**
+   * Takes the value stored in source register shifted one bit to the left and stores it in the 
+   * destination register. VF is set to the value of the least significant bit before the shift.
+   */
+  void ShiftRegisterLeft(int p_source_register, int p_destination_register);
 
   /**
    * Draws a sprite that is p_rows tall starting at p_xcoord, p_ycoord. The bytes used to draw each

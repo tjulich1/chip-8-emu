@@ -9,6 +9,13 @@ Emu test_emu;
 
 const int CASES = 1000;
 
+int seed = std::chrono::system_clock::now().time_since_epoch().count();
+
+std::default_random_engine generator(seed);
+std::uniform_int_distribution<int> register_distribution(0, 15);
+
+auto random_register = std::bind(register_distribution, generator);
+
 TEST_CASE("Testing clear screen instruction", "[instructions]") {
   std::bitset<16> clear_instruction(0x00e0);
   
@@ -71,7 +78,7 @@ TEST_CASE("Testing add value to register instruction 2", "[instructions]") {
     std::bitset<8> value(rand() % 0x50);
 
     // Pick a random register to add to.
-    std::bitset<4> rand_register(rand() % 16);
+    std::bitset<4> rand_register(random_register());
 
     // Set the value of the random register.
     int register_start = rand() % 0x50;
@@ -103,7 +110,7 @@ TEST_CASE("Testing set register instruction", "[instructions]") {
 TEST_CASE("Testing set register instruction 2", "[instructions]") {
   for (int i = 0; i < CASES; i++) {
     std::bitset<8> value(rand() % 0x100);
-    std::bitset<4> rand_register(rand() % 16);
+    std::bitset<4> rand_register(random_register());
     std::bitset<16> instruction("0110" + rand_register.to_string() + value.to_string());
     test_emu.LoadInstruction(0, instruction);
     test_emu.set_program_counter(0);
@@ -263,7 +270,7 @@ TEST_CASE("Testing store binary coded decimal to memory 3", "[instructions]") {
 
   for (int i = 0; i < CASES; i++) {
     // Pick a random register.
-    std::bitset<4> rand_register(rand() % 16);
+    std::bitset<4> rand_register(random_register());
 
     // Fill the register with a random value.
     int value = rand() % 0x100;
@@ -300,9 +307,9 @@ TEST_CASE("Testing add register to index instruction", "[instructions]") {
 TEST_CASE("Testing add register to index instruction 2", "[instructions]") {
   for (int i = 0; i < CASES; i++) {
     // Pick random register and fill with random value.
-    std::bitset<4> random_register = rand() % 16;
+    std::bitset<4> rand_register(random_register());
     int register_value = rand() % 0x100;
-    test_emu.set_register(random_register.to_ulong() , register_value);
+    test_emu.set_register(rand_register.to_ulong() , register_value);
 
     int index_start = rand() % 0x1000;
 
@@ -310,7 +317,7 @@ TEST_CASE("Testing add register to index instruction 2", "[instructions]") {
     test_emu.set_index_register(index_start);
 
     // Instruction to add the value from the random register to the index register.
-    std::bitset<16> instruction("1111" + random_register.to_string() + "00011110");
+    std::bitset<16> instruction("1111" + rand_register.to_string() + "00011110");
     test_emu.LoadInstruction(0, instruction);
     test_emu.set_program_counter(0);
     test_emu.Step();
@@ -349,7 +356,7 @@ TEST_CASE("Testing skip if equal instruction 2", "[instructions]") {
     int val_one = rand() % 0x10;
     std::bitset<8> val_two(rand() % 0x10);
 
-    std::bitset<4> rand_register(rand() % 16);
+    std::bitset<4> rand_register(random_register());
 
     test_emu.set_program_counter(0);
     test_emu.set_register(rand_register.to_ulong(), val_one);
@@ -403,8 +410,8 @@ TEST_CASE("Testing store register vy in vx 2" , "[instructions]") {
   for (int i = 0; i < CASES; i++) {
 
     // Generate nibbles for src and destination registers.
-    std::bitset<4> dest_register(rand() % 16);
-    std::bitset<4> src_register(rand() % 16);
+    std::bitset<4> dest_register(random_register());
+    std::bitset<4> src_register(random_register());
 
     // Build instruction to store src register value in destination register and load.
     std::bitset<16> instruction("1000" + dest_register.to_string() + src_register.to_string() + "0000");
@@ -435,10 +442,6 @@ TEST_CASE("Testing jump to register 0 plus value test", "[instructions]") {
 
 TEST_CASE("Testing read registers from memory instruction 2", "[instructions]") {
 
-  int seed = std::chrono::system_clock::now().time_since_epoch().count();
-
-  std::default_random_engine generator(seed);
-  std::uniform_int_distribution<int> register_distribution(0, 15);
   std::uniform_int_distribution<int> random_mem_start(0x200, 4000);
 
   for (int i = 0; i < CASES; i++) {
@@ -492,4 +495,44 @@ TEST_CASE("Testing store delay timer instruction", "[instructions]") {
   test_emu.Step();
 
   REQUIRE(test_emu.get_register(1) == 60);
+}
+
+TEST_CASE("Testing skip next instruction if registers are not equal", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int value_one = rand() % 0x10;
+    int value_two = rand() % 0x10;
+    int register_one = random_register();
+    int register_two = random_register();
+
+    test_emu.set_register(register_one, value_one);
+    test_emu.set_register(register_two, value_two);
+    test_emu.set_program_counter(0);
+    std::bitset<4> second_nibble(register_one);
+    std::bitset<4> third_nibble(register_two);
+    test_emu.LoadInstruction(0, std::bitset<16>("1001" + second_nibble.to_string() 
+      + third_nibble.to_string() + "0000"));
+    test_emu.Step();
+    if (test_emu.get_register(register_one) == test_emu.get_register(register_two)) {
+      REQUIRE(test_emu.get_program_counter() == 0x2);
+    } else {
+      REQUIRE(test_emu.get_program_counter() == 0x4);
+    }
+  }
+}
+
+TEST_CASE("Testing shift register left instruction", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    std::bitset<4> dest_register(rand() % 15);
+    std::bitset<4> src_register(rand() % 15);
+    int start_value = rand() % 0x100;
+    test_emu.set_register(src_register.to_ulong(), start_value);
+    int least_sig = std::bitset<8>(start_value)[0];
+    test_emu.set_program_counter(0);
+    std::bitset<16> instruction = std::bitset<16>("1000" + dest_register.to_string() 
+      + src_register.to_string() + "1110"); 
+    test_emu.LoadInstruction(0, instruction);
+    test_emu.Step();
+    REQUIRE(test_emu.get_register(0xF) == least_sig);
+    REQUIRE(test_emu.get_register(dest_register.to_ulong()) == std::bitset<8>(start_value << 1).to_ulong());
+  }
 }
