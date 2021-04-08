@@ -197,6 +197,11 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       Jump(new_program_counter);
       break;
     }
+    case 0x2: {
+      int routine_address = (p_instruction & (second_mask | third_mask | fourth_mask)).to_ulong();
+      ExecuteSubRoutine(routine_address);
+      break;
+    }
     case 0x3: {
       int value_to_check = (p_instruction & (third_mask | fourth_mask)).to_ulong();
       SkipIfEqual(second.to_ulong(), value_to_check);
@@ -408,6 +413,17 @@ void Emu::ShiftRegisterLeft(int p_source_register, int p_destination_register) {
   value = value << 1;
   variable_registers_[p_destination_register].Write(value);
   variable_registers_[0xF].Write(least_sig_bit);
+}
+
+void Emu::ExecuteSubRoutine(int p_address) {
+  // Ensure that the address is even, so its aligned with instruction boundaries.
+  if (p_address % 2 == 0) {
+    // Store current program counter on stack.
+    ret_address_stack_.emplace_back(std::bitset<16>(program_counter_));
+
+    // Set program counter to new address. 
+    program_counter_ = p_address;
+  }
 }
 
 void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {

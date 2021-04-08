@@ -536,3 +536,22 @@ TEST_CASE("Testing shift register left instruction", "[instructions]") {
     REQUIRE(test_emu.get_register(dest_register.to_ulong()) == std::bitset<8>(start_value << 1).to_ulong());
   }
 }
+
+TEST_CASE("Testing execute subroutine at address", "[instructions]") {
+  
+  test_emu.set_register(0, 0);
+
+  // Load instruction to add value 0x14 to register 0. This is a tiny "subroutine" to jump to.
+  test_emu.LoadInstruction(0xE, 0x7014);
+
+  // Load instruction to execute subroutine at address 0xE.
+  test_emu.LoadInstruction(0x0, 0x200E);
+
+  test_emu.set_program_counter(0);
+  test_emu.Step();
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_register(0) == 0x14);
+  REQUIRE(test_emu.get_program_counter() == 0x10);
+
+}

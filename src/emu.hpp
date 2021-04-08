@@ -296,6 +296,12 @@ private:
   void ShiftRegisterLeft(int p_source_register, int p_destination_register);
 
   /**
+   * Stores the current address on the stack, and jumps to subroutine located at p_address. p_address 
+   * must be an even integer, so that program counter can stay aligned with instruction boundaries.
+   */
+  void ExecuteSubRoutine(int p_address);
+
+  /**
    * Draws a sprite that is p_rows tall starting at p_xcoord, p_ycoord. The bytes used to draw each
    * row should be stored in memory, and the address of the first byte that should be drawn should 
    * be stored in the index register. 
