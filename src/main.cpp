@@ -30,11 +30,7 @@ int main(int argc, char* argv[]) {
       emu->set_memory(i, random_bytes[i]);
     }
 
-    emu->LoadInstruction(0x200, std::bitset<16>(0xFF65));
-    emu->Step();
-    emu->PrintRegisters();
-
-    std::ifstream input("../roms/ibm_logo.ch8");
+    std::ifstream input("../roms/Breakout [Carmelo Cortez, 1979].ch8");
     std::vector<char> bytes(
       (std::istreambuf_iterator<char>(input)),
       (std::istreambuf_iterator<char>())

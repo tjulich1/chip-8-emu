@@ -31,21 +31,34 @@ KeyboardInput::KeyboardInput() {
 
 void KeyboardInput::HandleKeyDown(SDL_Scancode p_code) {
   if (key_mappings_.find(p_code) != key_mappings_.end()) {
+    std::cout << "Key down" << std::endl;
     keys_[key_mappings_.find(p_code)->second] = 1;
   }
 } 
 
 void KeyboardInput::HandleKeyUp(SDL_Scancode p_code) {
   if (key_mappings_.find(p_code) != key_mappings_.end()) {
+    std::cout << "Key up" << std::endl;
     keys_[key_mappings_.find(p_code)->second] = 0;
   }
 }
 
 bool KeyboardInput::IsKeyDown(SDL_Scancode p_code) {
+  bool key_down = false;
   if (key_mappings_.find(p_code) != key_mappings_.end()) {
-    return keys_[key_mappings_.find(p_code)->second];
+    key_down =  keys_[key_mappings_.find(p_code)->second];
   } 
-  return 0;
+  return key_down;
+}
+
+bool KeyboardInput::IsKeyDown(int p_hex_value) {
+  bool key_down = false;
+  
+  // Make sure the hex value given actually is within keyboard range.
+  if (p_hex_value >= 0 && p_hex_value <= 0xF) {
+    key_down = keys_[p_hex_value];
+  }
+  return key_down;
 }
 
 std::array<bool, 16> KeyboardInput::get_keys() {

@@ -225,6 +225,12 @@ private:
   void DecodeRegisterArithmetic(std::bitset<16> p_instruction);
 
   /**
+   * Decodes the rest of instructions the correspond to instructions which handle checking key 
+   * states.
+   */
+  void DecodeKeyInstructions(int p_register_num, std::bitset<8> p_rest_of_instruction);
+
+  /**
    * Used to reset the main display to all blank pixels.
    */
   void ClearScreen();
@@ -280,9 +286,26 @@ private:
   void SkipIfEqual(int p_register_number, int p_value);
 
   /**
+   * Skips the next instruction if the value in p_register_number does not equal the given value.
+   */
+  void SkipIfNotEqual(int p_register_number, int p_value);
+
+  /**
    * Skips the next instruction if the two given registers do not hold equal values.
    */
   void SkipIfRegistersNotEqual(int p_register_one, int p_register_two);
+
+  /**
+   * Skips the next instructions if the key corresponding to the hex value in variable register 
+   * p_register is currently pressed.
+   */
+  void SkipIfKeyPressed(int p_register);
+
+  /**
+   * Skips the next instruction if the key corresponding to the hex value in variable register
+   * p_register is not currently pressed.
+   */
+  void SkipIfKeyNotPressed(int p_register);
 
   /**
    * Stores the value found in source register into destination register. 
@@ -315,6 +338,13 @@ private:
    * be stored in the index register. 
    */
   void DisplaySprite(int p_rows, int p_x_coord, int p_y_coord);
+
+  /**
+   * Sets the index register to the address of the sprite corresponding to the hex digit stored in 
+   * variable register p_register_number. I.E. if variable register p_register_number contains the
+   * value 0x4, the index register would be set to the address of the sprite for the '4' character.
+   */
+  void SetSpriteMemoryAddress(int p_register_number);
 
   /**
    * Stores basic sprites for fonts into memory from 0x50 -> 0x5F

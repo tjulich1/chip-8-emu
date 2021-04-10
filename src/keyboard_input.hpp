@@ -35,6 +35,11 @@ public:
   bool IsKeyDown(SDL_Scancode p_code);
 
   /**
+   * Checks if the key corresponding to the given hex value is currently down.
+   */
+  bool IsKeyDown(int p_hex_value);
+
+  /**
    * Returns array representing the state of keys 0x0 -> 0xF. 
    */
   std::array<bool, 16> get_keys();

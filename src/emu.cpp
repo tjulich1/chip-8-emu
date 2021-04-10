@@ -214,6 +214,11 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       SkipIfEqual(second.to_ulong(), value_to_check);
       break;
     }
+    case 0x4: {
+      int value_to_check = (p_instruction & (third_mask | fourth_mask)).to_ulong();
+      SkipIfNotEqual(second.to_ulong(), value_to_check);
+      break;
+    }
     case 0xB: {
       int value = (p_instruction & (second_mask | third_mask | fourth_mask)).to_ulong();
       Jump(variable_registers_[0].Read().to_ulong() + value);
@@ -252,11 +257,20 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       SkipIfRegistersNotEqual(register_one, register_two);
       break;
     }
+    case 0xE: {
+      int register_num = second.to_ulong();
+      std::bitset<8> rest_of_instruction = (third.to_ulong() << 4) + fourth.to_ulong();
+      DecodeKeyInstructions(register_num, rest_of_instruction);
+      break;
+    }
     case 0xF: {
       int register_number = second.to_ulong();
       std::bitset<8> last_bytes((p_instruction & (third_mask | fourth_mask)).to_ulong());
       DecodeRegisterOps(register_number, last_bytes);
       break;
+    }
+    default: {
+      std::cout << "Instruction unknown: " << p_instruction.to_string() << std::endl;
     }
   }
 }
@@ -274,6 +288,9 @@ void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction)
     case 0x1E:
       AddRegisterToIndex(p_register_number);
       break;
+    case 0x29:
+      SetSpriteMemoryAddress(p_register_number);
+      break;
     case 0x33: 
       StoreBinaryCodedDecimal(p_register_number);
       break;
@@ -283,6 +300,8 @@ void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction)
     case 0x65:
       ReadMemToRegisters(p_register_number);
       break;
+    default:
+      std::cout << "Unknown instruction: 0xF" << std::hex << p_register_number << std::hex << p_instruction.to_string() << std::endl; 
   }
 }
 
@@ -300,6 +319,17 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
       break;
     case 0xE:
       ShiftRegisterLeft(source_register, destination_register); 
+      break;
+  }
+}
+
+void Emu::DecodeKeyInstructions(int p_register_num, std::bitset<8> p_rest_of_instruction) {
+  switch(p_rest_of_instruction.to_ulong()) {
+    case 0x9E:
+      SkipIfKeyPressed(p_register_num);
+      break;
+    case 0xA1:
+      SkipIfKeyNotPressed(p_register_num);
       break;
   }
 }
@@ -401,11 +431,36 @@ void Emu::SkipIfEqual(int p_register_number, int p_value) {
   }
 }
 
+void Emu::SkipIfNotEqual(int p_register_number, int p_value) {
+  if (variable_registers_[p_register_number].Read().to_ulong() != p_value) {
+    program_counter_ += 2;
+  }
+}
+
 void Emu::SkipIfRegistersNotEqual(int p_register_one, int p_register_two) {
   int value_one = variable_registers_[p_register_one].Read().to_ulong();
   int value_two = variable_registers_[p_register_two].Read().to_ulong();
 
   if (value_one != value_two) {
+    program_counter_ += 2;
+  }
+}
+
+void Emu::SkipIfKeyPressed(int p_register) {
+  // Find the hex value corresponding to the key to check from variable register.
+  int key_to_check = variable_registers_[p_register].Read().to_ulong();
+
+  // Check to see if the given key is currently pressed
+  if (key_to_check >= 0 && key_to_check <= 0xF && keyboard_.IsKeyDown(key_to_check)) {
+    // If so, skip next instruction.
+    program_counter_ += 2;
+  }
+}
+
+void Emu::SkipIfKeyNotPressed(int p_register) {
+  int key_to_check = variable_registers_[p_register].Read().to_ulong();
+
+  if (key_to_check >= 0 && key_to_check <= 0xF && !keyboard_.IsKeyDown(key_to_check)) {
     program_counter_ += 2;
   }
 }
@@ -464,6 +519,13 @@ void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
     if (p_y_coord + i >= main_display_.get_pixel_height()) {
       break;
     }
+  }
+}
+
+void Emu::SetSpriteMemoryAddress(int p_register_number) {
+  int sprite_value = variable_registers_[p_register_number].Read().to_ulong();
+  if (sprite_value <= 0 && sprite_value <= 0xF) {
+    index_register_.Write(std::bitset<16>(0x50 + sprite_value));
   }
 }
 
