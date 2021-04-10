@@ -555,3 +555,22 @@ TEST_CASE("Testing execute subroutine at address", "[instructions]") {
   REQUIRE(test_emu.get_program_counter() == 0x10);
 
 }
+
+TEST_CASE("Testing return from subrouting instruction", "[instructions]") { 
+  test_emu.set_program_counter(0);
+
+  // Instruction to add value 0x14 to register 0. Used as a subroutine at memory location 0xE
+  test_emu.LoadInstruction(0xE, 0x7014);
+
+  //  Instruction to return from subroutine.
+  test_emu.LoadInstruction(0x10, 0x00EE);
+
+  // Instruction to jump to subroutine. 
+  test_emu.LoadInstruction(0x0, 0x200E);
+
+  test_emu.Step();
+  test_emu.Step();
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_program_counter() == 0x2);
+}

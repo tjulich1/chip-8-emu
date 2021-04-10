@@ -25,12 +25,13 @@ KeyboardInput::KeyboardInput() {
   for (int i = 0; i < codes.size(); i++) {
     key_mappings_.insert(std::pair<SDL_Scancode, int>(codes[i], values[i]));
   }
+
+  keys_.fill(0);
 }
 
 void KeyboardInput::HandleKeyDown(SDL_Scancode p_code) {
   if (key_mappings_.find(p_code) != key_mappings_.end()) {
     keys_[key_mappings_.find(p_code)->second] = 1;
-    std::cout << "Key " << std::hex << key_mappings_.find(p_code)->second << std::endl;
   }
 } 
 
@@ -45,6 +46,10 @@ bool KeyboardInput::IsKeyDown(SDL_Scancode p_code) {
     return keys_[key_mappings_.find(p_code)->second];
   } 
   return 0;
+}
+
+std::array<bool, 16> KeyboardInput::get_keys() {
+  return keys_;
 }
 
 void KeyboardInput::SetKey(int p_key, bool p_value) {

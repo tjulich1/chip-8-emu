@@ -97,8 +97,8 @@ public:
   std::bitset<16> get_index_register();
 
   /**
-   * Getter for the value held in register p_register. If p_register is < 0 or > 15 the value zero is
-   * returned instead.
+   * Getter for the value held in register p_register. If p_register is < 0 or > 15 the value zero 
+   * is returned instead.
    */
   int get_register(int p_register);
 
@@ -203,8 +203,8 @@ private:
   void HandleUserEvent(SDL_Event p_e);
 
   /**
-   * Method used to grab and return the instruction pointed to by program counter. The program counter
-   * is then incremented to point to start of next instruction.
+   * Method used to grab and return the instruction pointed to by program counter. The program 
+   * counter is then incremented to point to start of next instruction.
    */
   std::bitset<16> Fetch();
 
@@ -296,10 +296,18 @@ private:
   void ShiftRegisterLeft(int p_source_register, int p_destination_register);
 
   /**
-   * Stores the current address on the stack, and jumps to subroutine located at p_address. p_address 
-   * must be an even integer, so that program counter can stay aligned with instruction boundaries.
+   * Stores the current address on the stack, and jumps to subroutine located at p_address. 
+   * p_address must be an even integer, so that program counter can stay aligned with instruction 
+   * boundaries.
    */
-  void ExecuteSubRoutine(int p_address);
+  void ExecuteSubroutine(int p_address);
+
+  /**
+   * Instruction used to return from the current subroutine, i.e. pop an address from the stack and 
+   * set the program counter to this value. If there are no addresses on the stack to return to, 
+   * this instruction is skipped.
+   */
+  void ReturnFromSubroutine();
 
   /**
    * Draws a sprite that is p_rows tall starting at p_xcoord, p_ycoord. The bytes used to draw each
@@ -324,14 +332,14 @@ private:
   void SoundTick();
 
   /**
-   * When an emulator is started, it uses this callback and SDL_AddTimer to register to have DelayTick()
-   * method called every p_interval m.s.
+   * When an emulator is started, it uses this callback and SDL_AddTimer to register to have 
+   * DelayTick() method called every p_interval m.s.
    */
   static Uint32 delay_timer_callback(Uint32 p_interval, void* p_param);
 
   /**
-   * When an emulator is started, it uses this callback and SDL_AddTimer to register to have SoundTick()
-   * method called every p_interval m.s.
+   * When an emulator is started, it uses this callback and SDL_AddTimer to register to have 
+   * SoundTick() method called every p_interval m.s.
    */
   static Uint32 sound_timer_callback(Uint32 p_interval, void* p_param);
 };

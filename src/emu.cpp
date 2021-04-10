@@ -28,7 +28,6 @@ void Emu::Start() {
 
   bool quit = false;
   while (!quit) {
-
     SDL_Event e;
     while(SDL_PollEvent(&e)) {
       switch (e.type) {
@@ -42,14 +41,13 @@ void Emu::Start() {
         case SDL_KEYDOWN:
           keyboard_.HandleKeyDown(e.key.keysym.scancode);
           break;
+        case SDL_KEYUP:
+          keyboard_.HandleKeyUp(e.key.keysym.scancode);
+          break;
       }
     }
 
-    std::bitset<16> current_instruction = Fetch();
-    if (current_instruction != std::bitset<16>(0x000)) {
-      Decode(current_instruction);
-      Render();
-    } 
+    Step();
   }
 }
 
@@ -71,6 +69,8 @@ void Emu::Step() {
 
   // Pass the instruction to get decoded.
   Decode(current_instruction);
+
+  Render();
 }
 
 void Emu::Render() {
@@ -189,7 +189,14 @@ void Emu::Decode(std::bitset<16> p_instruction) {
 
   switch(((p_instruction & first_mask) >> 12).to_ulong()) {
     case 0x0: {
-      ClearScreen();
+      switch ((p_instruction & (third_mask | fourth_mask)).to_ulong()) {
+        case 0xE0:
+          ClearScreen();
+          break;
+        case 0xEE: 
+          ReturnFromSubroutine();
+          break;
+      }
       break;
     }
     case 0x1: {
@@ -199,7 +206,7 @@ void Emu::Decode(std::bitset<16> p_instruction) {
     }
     case 0x2: {
       int routine_address = (p_instruction & (second_mask | third_mask | fourth_mask)).to_ulong();
-      ExecuteSubRoutine(routine_address);
+      ExecuteSubroutine(routine_address);
       break;
     }
     case 0x3: {
@@ -415,7 +422,7 @@ void Emu::ShiftRegisterLeft(int p_source_register, int p_destination_register) {
   variable_registers_[0xF].Write(least_sig_bit);
 }
 
-void Emu::ExecuteSubRoutine(int p_address) {
+void Emu::ExecuteSubroutine(int p_address) {
   // Ensure that the address is even, so its aligned with instruction boundaries.
   if (p_address % 2 == 0) {
     // Store current program counter on stack.
@@ -423,6 +430,13 @@ void Emu::ExecuteSubRoutine(int p_address) {
 
     // Set program counter to new address. 
     program_counter_ = p_address;
+  }
+}
+
+void Emu::ReturnFromSubroutine() {
+  if (ret_address_stack_.size() != 0) {
+    program_counter_ = ret_address_stack_.back().to_ulong();
+    ret_address_stack_.pop_back();
   }
 }
 
