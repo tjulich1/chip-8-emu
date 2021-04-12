@@ -49,7 +49,7 @@ public:
   /**
    *  Fetches, decodes, and executes the next instruction pointed to by the program counter.
    */
-  void Step();  
+  bool Step();  
 
   /**
    * Called to render the current display state to the renderer being used.
@@ -322,6 +322,12 @@ private:
    * destination register. VF is set to the value of the least significant bit before the shift.
    */
   void ShiftRegisterLeft(int p_source_register, int p_destination_register);
+
+  /**
+   * Calculates the value of the value in p_first_register, minus the value in p_second_register,
+   * and stores the value in p_destination_register.
+   */
+  void SubtractRegisters(int p_first_register, int p_second_register, int p_destination_register);
 
   /**
    * Stores the current address on the stack, and jumps to subroutine located at p_address. 

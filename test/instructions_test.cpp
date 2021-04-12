@@ -574,3 +574,41 @@ TEST_CASE("Testing return from subrouting instruction", "[instructions]") {
 
   REQUIRE(test_emu.get_program_counter() == 0x2);
 }
+
+TEST_CASE("Testing set sprite memory address instruction", "[instructions]") {
+  test_emu.set_program_counter(0);
+  
+  test_emu.set_register(0, 0x0);
+  test_emu.set_register(1, 0x4);
+  test_emu.LoadInstruction(0, 0xF029);
+  test_emu.LoadInstruction(2, 0xF129);
+
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_index_register().to_ulong() == 0x50);
+
+  test_emu.Step();
+
+  REQUIRE(test_emu.get_index_register().to_ulong() == 0x54);
+
+}
+
+TEST_CASE("Testing skip following if register not equal", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int register_num = random_register();
+    int register_value = rand() % 0x100;
+    int random_value = rand() % 0x100;
+    test_emu.set_register(register_num, register_value);
+    test_emu.set_program_counter(0);
+    std::bitset<16> instruction((0x4<<12) + (register_num<<8) + random_value);
+    test_emu.LoadInstruction(0, instruction);
+    test_emu.Step();
+
+    if (register_value == random_value) {
+      REQUIRE(test_emu.get_program_counter() == 0x2);
+    } else {
+      REQUIRE(test_emu.get_program_counter() == 0x4);
+    }
+
+  }
+}
