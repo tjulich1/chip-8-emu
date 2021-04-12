@@ -40,6 +40,16 @@ public:
   bool IsKeyDown(int p_hex_value);
 
   /**
+   * Checks if the key with scancode p_code is recognized by the chip 8 emulator.
+   */
+  bool IsValidKey(SDL_Scancode p_code);
+
+  /**
+   * Returns the hex value associated with the given key (or -1 if not a valid key).
+   */
+  int GetKeyValue(SDL_Scancode p_code);
+
+  /**
    * Returns array representing the state of keys 0x0 -> 0xF. 
    */
   std::array<bool, 16> get_keys();

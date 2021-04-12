@@ -61,6 +61,22 @@ bool KeyboardInput::IsKeyDown(int p_hex_value) {
   return key_down;
 }
 
+bool KeyboardInput::IsValidKey(SDL_Scancode p_code) {
+  bool valid = false;
+  if (key_mappings_.find(p_code) != key_mappings_.end()) {
+    valid = true;
+  }
+  return valid;
+}
+
+int KeyboardInput::GetKeyValue(SDL_Scancode p_code) {
+  int value = -1;
+  if (IsValidKey(p_code)) {
+    value = key_mappings_.find(p_code)->second;
+  }
+  return value;
+}
+
 std::array<bool, 16> KeyboardInput::get_keys() {
   return keys_;
 }

@@ -308,6 +308,11 @@ private:
   void SkipIfKeyNotPressed(int p_register);
 
   /**
+   * Wait for a key to be pressed, and store that value in register p_register.
+   */
+  void WaitForKeyPress(int p_register);
+
+  /**
    * Stores the value found in source register into destination register. 
    */
   void StoreRegisterXInY(int p_src_register, int p_dest_register);
@@ -350,6 +355,11 @@ private:
    * Stores basic sprites for fonts into memory from 0x50 -> 0x5F
    */
   void InitializeFonts();
+
+  /**
+   * Generates a random number, AND masks it with p_mask, and stores in register p_register.
+   */
+  void GenerateRandom(int p_register, int p_mask);
 
   /**
    * Function that on emulator start, is called once every second to decrement delay counter.

@@ -224,6 +224,12 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       Jump(variable_registers_[0].Read().to_ulong() + value);
       break;
     }
+    case 0xC: {
+      int value = (p_instruction & (third_mask | fourth_mask)).to_ulong();
+      int destination = second.to_ulong();
+      GenerateRandom(destination, value);
+      break;
+    }
     case 0xD: {
       int rows = fourth.to_ulong();
       int x_coord = variable_registers_[second.to_ulong()].Read().to_ulong();
@@ -280,6 +286,9 @@ void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction)
     case 0x7:
       variable_registers_[p_register_number].Write(delay_timer_);
       break;
+    case 0xA:
+      WaitForKeyPress(p_register_number);
+      break;
     case 0x15:
       SetDelayTimer(p_register_number);
     case 0x18:
@@ -301,7 +310,7 @@ void Emu::DecodeRegisterOps(int p_register_number, std::bitset<8> p_instruction)
       ReadMemToRegisters(p_register_number);
       break;
     default:
-      std::cout << "Unknown instruction: 0xF" << std::hex << p_register_number << std::hex << p_instruction.to_string() << std::endl; 
+      std::cout << "Unknown instruction: 0xF" << std::hex << p_register_number << std::hex << p_instruction.to_ulong() << std::endl; 
   }
 }
 
@@ -320,6 +329,8 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
     case 0xE:
       ShiftRegisterLeft(source_register, destination_register); 
       break;
+    default: 
+      std::cout << "Instruction unknown" << p_instruction << std::endl;
   }
 }
 
@@ -331,6 +342,8 @@ void Emu::DecodeKeyInstructions(int p_register_num, std::bitset<8> p_rest_of_ins
     case 0xA1:
       SkipIfKeyNotPressed(p_register_num);
       break;
+    default:
+      std::cout << "Instruction unknown E" << std::hex << p_register_num << p_rest_of_instruction.to_ulong() << std::endl;
   }
 }
 
@@ -465,6 +478,25 @@ void Emu::SkipIfKeyNotPressed(int p_register) {
   }
 }
 
+void Emu::WaitForKeyPress(int p_register) {
+   bool waiting = true;
+   while (waiting) {
+     SDL_Event e;
+     while(SDL_PollEvent(&e)) {
+       switch (e.type) {
+         case SDL_KEYDOWN: {
+           SDL_Scancode code = e.key.keysym.scancode;
+           if (keyboard_.IsValidKey(code)) {
+             variable_registers_[p_register].Write(keyboard_.GetKeyValue(code));
+             waiting = false;
+           }
+         }
+       }
+     }
+   }
+   std::cout << "Not waiting anymore" << std::endl;
+}
+
 void Emu::StoreRegisterXInY(int p_src_register, int p_dest_register) {
   variable_registers_[p_dest_register].Write(variable_registers_[p_src_register].Read());
 }
@@ -552,6 +584,12 @@ void Emu::InitializeFonts() {
     std::bitset<8> current_byte(font_bytes[i]);
     memory_.Write(0x50 + i, current_byte);
   }
+}
+
+void Emu::GenerateRandom(int p_register, int p_mask) {
+  int start_value = rand() % 0x100;
+  start_value &= p_mask;
+  variable_registers_[p_register].Write(start_value);
 }
 
 void Emu::DelayTick() {
