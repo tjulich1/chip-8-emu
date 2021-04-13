@@ -325,18 +325,22 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
   int second_register = ((p_instruction & second_byte_mask) >> 8).to_ulong();
 
   switch((p_instruction & fourth_byte_mask).to_ulong()) {
-    case 0x0: 
+    case 0: 
       StoreRegisterXInY(first_register, second_register);
       break;
-    case 0x5: {
+    case 4: {
+      AddRegisters(first_register, second_register);
+      break;
+    }
+    case 5: {
       SubtractRegisters(second_register, first_register, second_register);
       break;
     }
-    case 0x6: {
+    case 6: {
       ShiftRegisterRight(first_register, second_register);
       break;
     }
-    case 0x7: {
+    case 7: {
       SubtractRegisters(first_register, second_register, second_register);
       break;
     }
@@ -539,6 +543,14 @@ void Emu::ShiftRegisterRight(int p_source_register, int p_destination_register) 
 
   // Shift value to right one bit and store in destination register.
   variable_registers_[p_destination_register].Write(value >> 1);
+}
+
+void Emu::AddRegisters(int p_first_register, int p_second_register) {
+  int first_value = variable_registers_[p_first_register].Read().to_ulong();
+  int second_value = variable_registers_[p_second_register].Read().to_ulong();
+  int sum = first_value + second_value;
+
+  variable_registers_[p_second_register].Write(sum);
 }
 
 void Emu::SubtractRegisters(int p_first_register, int p_second_register, int p_destination_register) {

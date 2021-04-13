@@ -330,6 +330,12 @@ private:
   void ShiftRegisterRight(int p_source_register, int p_destination_register);
 
   /**
+   * Takes the values stores in both registers, adds them together, and stores the sum in the second
+   * register.
+   */
+  void AddRegisters(int p_first_register, int p_second_register);
+
+  /**
    * Calculates the value of the value in p_first_register, minus the value in p_second_register,
    * and stores the value in p_destination_register.
    */
