@@ -324,6 +324,12 @@ private:
   void ShiftRegisterLeft(int p_source_register, int p_destination_register);
 
   /**
+   * Takes the value stored in source register shifted one bit to the right and stores it in the 
+   * destination register. VF is set to the value of the least significant bit before the shift.
+   */
+  void ShiftRegisterRight(int p_source_register, int p_destination_register);
+
+  /**
    * Calculates the value of the value in p_first_register, minus the value in p_second_register,
    * and stores the value in p_destination_register.
    */

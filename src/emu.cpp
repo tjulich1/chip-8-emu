@@ -332,6 +332,10 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
       SubtractRegisters(second_register, first_register, second_register);
       break;
     }
+    case 0x6: {
+      ShiftRegisterRight(first_register, second_register);
+      break;
+    }
     case 0x7: {
       SubtractRegisters(first_register, second_register, second_register);
       break;
@@ -525,6 +529,16 @@ void Emu::ShiftRegisterLeft(int p_source_register, int p_destination_register) {
   value = value << 1;
   variable_registers_[p_destination_register].Write(value);
   variable_registers_[0xF].Write(least_sig_bit);
+}
+
+void Emu::ShiftRegisterRight(int p_source_register, int p_destination_register) {
+  int value = variable_registers_[p_source_register].Read().to_ulong();
+  
+  // Mask and write the least significant bit to VF
+  variable_registers_[0xF].Write(value & 1);
+
+  // Shift value to right one bit and store in destination register.
+  variable_registers_[p_destination_register].Write(value >> 1);
 }
 
 void Emu::SubtractRegisters(int p_first_register, int p_second_register, int p_destination_register) {
