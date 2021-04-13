@@ -286,6 +286,12 @@ private:
   void SkipIfEqual(int p_register_number, int p_value);
 
   /**
+   * Compares the values stores in p_first_register and p_second_register, and skips the next 
+   * instruction if the values are equal.
+   */
+  void SkipIfRegistersEqual(int p_first_register, int p_second_register);
+
+  /**
    * Skips the next instruction if the value in p_register_number does not equal the given value.
    */
   void SkipIfNotEqual(int p_register_number, int p_value);

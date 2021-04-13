@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
       emu->set_memory(i, random_bytes[i]);
     }
 
-    std::ifstream input("../roms/Breakout [Carmelo Cortez, 1979].ch8");
+    std::ifstream input("../roms/Maze.ch8");
     std::vector<char> bytes(
       (std::istreambuf_iterator<char>(input)),
       (std::istreambuf_iterator<char>())
