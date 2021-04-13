@@ -330,6 +330,18 @@ private:
   void ShiftRegisterRight(int p_source_register, int p_destination_register);
 
   /**
+   * Takes the values in the two registers, bitwise OR's them, and stores the result in the second 
+   * register.
+   */
+  void OrRegisters(int first_register, int second_register);
+  
+  /**
+   * Takes the values in the two registers, bitwise AND's them, and stores the result in the second
+   * register.
+   */
+  void AndRegisters(int p_first_register, int p_second_register);
+
+  /**
    * Takes the value stores in p_first_register and the value in p_second_register, XOR's the values
    * together, and stores the result in p_second_register.
    */ 

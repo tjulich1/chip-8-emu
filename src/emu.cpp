@@ -328,6 +328,12 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
     case 0: 
       StoreRegisterXInY(first_register, second_register);
       break;
+    case 1:
+      OrRegisters(first_register, second_register);
+      break;
+    case 2:
+      AndRegisters(first_register, second_register);
+      break;
     case 3: 
       XorRegisters(first_register, second_register);
       break;
@@ -348,7 +354,8 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
       break;
     
     default: 
-      std::cout << "Instruction unknown" << p_instruction << std::endl;
+      std::cout << "Instruction unknown " << p_instruction << std::endl;
+      std::cout << "Last byte: " << std::hex << (p_instruction & fourth_byte_mask).to_string() << std::endl;
   }
 }
 
@@ -542,6 +549,18 @@ void Emu::ShiftRegisterRight(int p_source_register, int p_destination_register) 
 
   // Shift value to right one bit and store in destination register.
   variable_registers_[p_destination_register].Write(value >> 1);
+}
+
+void Emu::OrRegisters(int p_first_register, int p_second_register) {
+  int first_value = variable_registers_[p_first_register].Read().to_ulong();
+  int second_value = variable_registers_[p_second_register].Read().to_ulong();
+  variable_registers_[p_second_register].Write(first_value | second_value);
+}
+
+void Emu::AndRegisters(int p_first_register, int p_second_register) {
+  int first_value = variable_registers_[p_first_register].Read().to_ulong();
+  int second_value = variable_registers_[p_second_register].Read().to_ulong();
+  variable_registers_[p_second_register].Write(first_value & second_value);
 }
 
 void Emu::XorRegisters(int p_first_register, int p_second_register) {
