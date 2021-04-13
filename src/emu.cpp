@@ -328,26 +328,25 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
     case 0: 
       StoreRegisterXInY(first_register, second_register);
       break;
-    case 4: {
+    case 3: 
+      XorRegisters(first_register, second_register);
+      break;
+    case 4: 
       AddRegisters(first_register, second_register);
       break;
-    }
-    case 5: {
+    case 5: 
       SubtractRegisters(second_register, first_register, second_register);
       break;
-    }
-    case 6: {
+    case 6: 
       ShiftRegisterRight(first_register, second_register);
       break;
-    }
-    case 7: {
+    case 7: 
       SubtractRegisters(first_register, second_register, second_register);
       break;
-    }
-    case 0xE: {
+    case 0xE: 
       ShiftRegisterLeft(first_register, second_register); 
       break;
-    }
+    
     default: 
       std::cout << "Instruction unknown" << p_instruction << std::endl;
   }
@@ -545,12 +544,16 @@ void Emu::ShiftRegisterRight(int p_source_register, int p_destination_register) 
   variable_registers_[p_destination_register].Write(value >> 1);
 }
 
+void Emu::XorRegisters(int p_first_register, int p_second_register) {
+  int first_value = variable_registers_[p_first_register].Read().to_ulong();
+  int second_value = variable_registers_[p_second_register].Read().to_ulong();
+  variable_registers_[p_second_register].Write(first_value ^ second_value);
+}
+
 void Emu::AddRegisters(int p_first_register, int p_second_register) {
   int first_value = variable_registers_[p_first_register].Read().to_ulong();
   int second_value = variable_registers_[p_second_register].Read().to_ulong();
-  int sum = first_value + second_value;
-
-  variable_registers_[p_second_register].Write(sum);
+  variable_registers_[p_second_register].Write(first_value + second_value);
 }
 
 void Emu::SubtractRegisters(int p_first_register, int p_second_register, int p_destination_register) {
@@ -562,9 +565,8 @@ void Emu::SubtractRegisters(int p_first_register, int p_second_register, int p_d
     variable_registers_[0xF].Write(0);
   }
 
-  int result = first_value - second_value;
   if (p_destination_register != 0xF) {
-    variable_registers_[p_destination_register].Write(result);
+    variable_registers_[p_destination_register].Write(first_value - second_value);
   }
 }
 

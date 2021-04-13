@@ -330,6 +330,12 @@ private:
   void ShiftRegisterRight(int p_source_register, int p_destination_register);
 
   /**
+   * Takes the value stores in p_first_register and the value in p_second_register, XOR's the values
+   * together, and stores the result in p_second_register.
+   */ 
+  void XorRegisters(int p_first_register, int p_second_register);
+
+  /**
    * Takes the values stores in both registers, adds them together, and stores the sum in the second
    * register.
    */
