@@ -31,14 +31,12 @@ KeyboardInput::KeyboardInput() {
 
 void KeyboardInput::HandleKeyDown(SDL_Scancode p_code) {
   if (key_mappings_.find(p_code) != key_mappings_.end()) {
-    std::cout << "Key down" << std::endl;
     keys_[key_mappings_.find(p_code)->second] = 1;
   }
 } 
 
 void KeyboardInput::HandleKeyUp(SDL_Scancode p_code) {
   if (key_mappings_.find(p_code) != key_mappings_.end()) {
-    std::cout << "Key up" << std::endl;
     keys_[key_mappings_.find(p_code)->second] = 0;
   }
 }

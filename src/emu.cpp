@@ -3,10 +3,10 @@
 #include "emu.hpp"
 #include "keyboard_input.hpp"
 
+#include <bitset>
 #include <iostream>
 
 Emu::Emu() {
-  
   InitializeFonts();
   program_counter_ = PROGRAM_START;
   set_index_register(0);
@@ -26,10 +26,10 @@ void Emu::Start() {
   SDL_AddTimer(1000, delay_timer_callback, this);
   SDL_AddTimer(1000, sound_timer_callback, this);
 
-  while (!Step()) { }
+  while (!Step()) {}
 }
 
-void Emu::LoadInstruction(int p_address, std::bitset<16> p_instruction) {
+void Emu::LoadInstruction(int p_address, std::bitset<16> p_instruction) { 
   // Grab the leftmost 8 bits of the instruction.
   std::bitset<8> first_byte(p_instruction.to_string().substr(0, 8));
 
@@ -41,8 +41,17 @@ void Emu::LoadInstruction(int p_address, std::bitset<16> p_instruction) {
   memory_.Write(p_address + 1, second_byte);
 }
 
-bool Emu::Step() {
+void PrintInstruction(std::bitset<16> p_instruction) {
+  int first_nibble = (p_instruction.to_ulong() & 0xF000) >> 12;
+  int second_nibble = (p_instruction.to_ulong() & 0xF00) >> 8;
+  int third_nibble = (p_instruction.to_ulong() & 0xF0) >> 4;
+  int fourth_nibble = (p_instruction.to_ulong() & 0xF);
 
+  std::cout << "Instruction: " << std::hex << first_nibble << second_nibble << third_nibble 
+    << fourth_nibble << std::endl;
+}
+
+bool Emu::Step() {
   bool quit = false;
 
   SDL_Event e;
@@ -67,10 +76,13 @@ bool Emu::Step() {
   // Grab the next instruction.
   std::bitset<16> current_instruction = Fetch();
 
+  PrintInstruction(current_instruction);
+
   // Pass the instruction to get decoded.
   Decode(current_instruction);
 
   Render();
+
   return quit;
 }
 
@@ -162,6 +174,10 @@ void Emu::set_memory(int p_address, int p_value) {
   memory_.Write(p_address, std::bitset<8>(p_value));
 }
 
+void Emu::set_sound_timer(int p_new_timer_value) {
+  sound_timer_ = p_new_timer_value;
+}
+
 int Emu::get_sound_timer() {
   return sound_timer_;
 }
@@ -180,6 +196,7 @@ void Emu::Decode(std::bitset<16> p_instruction) {
   std::bitset<16> third_mask(0x00F0);
   std::bitset<16> fourth_mask(0x000F);
 
+  std::bitset<4> first(p_instruction.to_string().substr(0, 4));
   // Grab second nibble
   std::bitset<4> second(p_instruction.to_string().substr(4, 4));
   // Grab third nibble
@@ -187,15 +204,23 @@ void Emu::Decode(std::bitset<16> p_instruction) {
   // Grab far right nibble
   std::bitset<4> fourth(p_instruction.to_string().substr(12, 4));
 
+  // std::cout << " 0x" << std::hex << first.to_ulong() << second.to_ulong() 
+  //   << third.to_ulong() << fourth.to_ulong() << std::endl;
+
   switch(((p_instruction & first_mask) >> 12).to_ulong()) {
     case 0x0: {
       switch ((p_instruction & (third_mask | fourth_mask)).to_ulong()) {
-        case 0xE0:
+        case 0xE0: {
           ClearScreen();
           break;
-        case 0xEE: 
+        } 
+        case 0xEE: {
           ReturnFromSubroutine();
           break;
+        } 
+        default: {
+          std::cout << "-> Unknown instruction" << std::endl;
+        }
       }
       break;
     }
@@ -220,12 +245,50 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       break;
     }
     case 0x5: {
-      SkipIfRegistersEqual(second.to_ulong(), third.to_ulong());
+      if (fourth.to_ulong() == 0) {
+        SkipIfRegistersEqual(second.to_ulong(), third.to_ulong());
+      } else {
+        std::cout << "-> Unknown instruction 0x" << std::hex << p_instruction.to_ulong() 
+          << std::endl;
+      }      
+      break;
+    }
+    case 0x6: {
+      int register_number = second.to_ulong();
+      int new_value = (p_instruction & (third_mask | fourth_mask)).to_ulong();
+      set_register(register_number, new_value);
+      break;
+    }
+    case 0x7: {
+      int register_number = second.to_ulong();
+      int value_to_add = (p_instruction & (third_mask | fourth_mask)).to_ulong();
+      AddValToRegister(register_number, value_to_add);
+      break;
+    }
+    case 0x8: {
+      DecodeRegisterArithmetic(p_instruction);
+      break;
+    }
+    case 0x9: {
+      if (fourth.to_ulong() == 0) {
+        int register_one = second.to_ulong();
+        int register_two = third.to_ulong();
+        SkipIfRegistersNotEqual(register_one, register_two);
+      } else {
+
+        std::cout << "-> UNKNOWN INSTRUCTION: 0x" << std::hex << p_instruction.to_ulong() 
+          << std::endl;
+      }
+      
+      break;
+    }
+    case 0xA: {
+      set_index_register((p_instruction & (second_mask | third_mask | fourth_mask)).to_ulong());
       break;
     }
     case 0xB: {
       int value = (p_instruction & (second_mask | third_mask | fourth_mask)).to_ulong();
-      Jump(variable_registers_[0].Read().to_ulong() + value);
+      Jump(get_register(0) + value);
       break;
     }
     case 0xC: {
@@ -236,37 +299,12 @@ void Emu::Decode(std::bitset<16> p_instruction) {
     }
     case 0xD: {
       int rows = fourth.to_ulong();
-      int x_coord = variable_registers_[second.to_ulong()].Read().to_ulong();
-      int y_coord = variable_registers_[third.to_ulong()].Read().to_ulong();
+      int x_coord = get_register(second.to_ulong());
+      int y_coord = get_register(third.to_ulong());
       DisplaySprite(rows, x_coord, y_coord);
       break;
     }
-    case 0x7: {
-      int register_number = second.to_ulong();
-      int value_to_add = (p_instruction & (third_mask | fourth_mask)).to_ulong();
-      AddValToRegister(register_number, value_to_add);
-      break;
-    }
-    case 0x6: {
-      int register_number = second.to_ulong();
-      int new_value = (p_instruction & (third_mask | fourth_mask)).to_ulong();
-      set_register(register_number, new_value);
-      break;
-    }
-    case 0xA: {
-      set_index_register((p_instruction & (second_mask | third_mask | fourth_mask)).to_ulong());
-      break;
-    }
-    case 0x8: {
-      DecodeRegisterArithmetic(p_instruction);
-      break;
-    }
-    case 0x9: {
-      int register_one = second.to_ulong();
-      int register_two = third.to_ulong();
-      SkipIfRegistersNotEqual(register_one, register_two);
-      break;
-    }
+    
     case 0xE: {
       int register_num = second.to_ulong();
       std::bitset<8> rest_of_instruction = (third.to_ulong() << 4) + fourth.to_ulong();
@@ -280,7 +318,7 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       break;
     }
     default: {
-      std::cout << "Instruction unknown: " << p_instruction.to_string() << std::endl;
+      std::cout << "-> Instruction unknown: " << p_instruction.to_string() << std::endl;
     }
   }
 }
@@ -294,7 +332,8 @@ void Emu::DecodeKeyInstructions(int p_register_num, std::bitset<8> p_rest_of_ins
       SkipIfKeyNotPressed(p_register_num);
       break;
     default:
-      std::cout << "Instruction unknown E" << std::hex << p_register_num << p_rest_of_instruction.to_ulong() << std::endl;
+      std::cout << "-> Instruction unknown E" << std::hex << p_register_num  
+        << p_rest_of_instruction.to_ulong() << std::endl;
   }
 }
 
@@ -337,57 +376,10 @@ void Emu::Jump(int p_new_program_counter) {
 
 void Emu::AddValToRegister(int p_register, int p_val) {
   if (p_register > -1 && p_register < 16) {
-    int new_value = variable_registers_[p_register].Read().to_ulong() + p_val;
-    variable_registers_[p_register].Write(std::bitset<8>(new_value));
+    int new_value = get_register(p_register) + p_val;
+    set_register(p_register, new_value);
   }
 } 
-
-void Emu::StoreRegistersToMem(int p_register_number) {
-  for (int i = 0; i <= p_register_number; i++) {
-    int address_to_write = index_register_.Read().to_ulong() + i;
-    std::bitset<8> value_to_write = variable_registers_[i].Read();
-    memory_.Write(address_to_write, value_to_write);
-  }
-  index_register_.Write(std::bitset<16>(index_register_.Read().to_ulong() + p_register_number + 1));
-}
-
-void Emu::ReadMemToRegisters(int p_register_number) {
-  int start_mem = index_register_.Read().to_ulong();
-  for (int i = 0; i <= p_register_number; i++) {
-    variable_registers_[i].Write(memory_.Read(start_mem + i));
-  }
-  index_register_.Write(start_mem + p_register_number + 1);
-}
-
-void Emu::StoreBinaryCodedDecimal(int p_register_number) {
-  int value_to_store = variable_registers_[p_register_number].Read().to_ulong();
-
-  // Extract the values 
-  int hundreds_place = value_to_store / 100;
-  int tens_place = (value_to_store / 10) % 10;
-  int ones_place = (value_to_store % 100) % 10;
-
-  int mem_start = index_register_.Read().to_ulong();
-
-  // Store each digit in its own byte in memory.
-  memory_.Write(mem_start, std::bitset<8>(hundreds_place));
-  memory_.Write(mem_start + 1, std::bitset<8>(tens_place));
-  memory_.Write(mem_start + 2, std::bitset<8>(ones_place));
-}
-
-void Emu::AddRegisterToIndex(int p_register_number) {
-  int index_value = index_register_.Read().to_ulong();
-  int value_to_add = variable_registers_[p_register_number].Read().to_ulong();
-  index_register_.Write(std::bitset<16>(index_value + value_to_add));
-}
-
-void Emu::SetSoundTimer(int p_register_number) {
-  sound_timer_ = variable_registers_[p_register_number].Read().to_ulong();
-}
-
-void Emu::SetDelayTimer(int p_register_number) {
-  delay_timer_ = variable_registers_[p_register_number].Read().to_ulong();
-}
 
 void Emu::SkipIfEqual(int p_register_number, int p_value) {
   if (get_register(p_register_number) == p_value) {
@@ -410,8 +402,8 @@ void Emu::SkipIfNotEqual(int p_register_number, int p_value) {
 }
 
 void Emu::SkipIfRegistersNotEqual(int p_register_one, int p_register_two) {
-  int value_one = variable_registers_[p_register_one].Read().to_ulong();
-  int value_two = variable_registers_[p_register_two].Read().to_ulong();
+  int value_one = get_register(p_register_one);
+  int value_two = get_register(p_register_two);
   if (value_one != value_two) {
     program_counter_ += 2;
   }
@@ -419,7 +411,7 @@ void Emu::SkipIfRegistersNotEqual(int p_register_one, int p_register_two) {
 
 void Emu::SkipIfKeyPressed(int p_register) {
   // Find the hex value corresponding to the key to check from variable register.
-  int key_to_check = variable_registers_[p_register].Read().to_ulong();
+  int key_to_check = get_register(p_register);
 
   // Check to see if the given key is currently pressed
   if (key_to_check >= 0 && key_to_check <= 0xF && keyboard_.IsKeyDown(key_to_check)) {
@@ -429,33 +421,9 @@ void Emu::SkipIfKeyPressed(int p_register) {
 }
 
 void Emu::SkipIfKeyNotPressed(int p_register) {
-  int key_to_check = variable_registers_[p_register].Read().to_ulong();
+  int key_to_check = get_register(p_register);
   if (key_to_check >= 0 && key_to_check <= 0xF && !keyboard_.IsKeyDown(key_to_check)) {
     program_counter_ += 2;
-  }
-}
-
-void Emu::WaitForKeyPress(int p_register) {
-  bool waiting = true;
-  while (waiting) {
-    SDL_Event e;
-    while(SDL_PollEvent(&e) && waiting) {
-      switch (e.type) {
-        // If we get a quit event, push it back to the event queue and stop waiting for a key.
-        case SDL_QUIT:
-          SDL_PushEvent(&e);
-          waiting = false;
-          break;
-        // If we get a key press, check if its a recognized key and if so, save to register.
-        case SDL_KEYDOWN: {
-          SDL_Scancode code = e.key.keysym.scancode;
-          if (keyboard_.IsValidKey(code)) {
-            variable_registers_[p_register].Write(keyboard_.GetKeyValue(code));
-            waiting = false;
-          }
-        }
-      }
-    }
   }
 }
 
@@ -478,15 +446,32 @@ void Emu::ReturnFromSubroutine() {
 }
 
 void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
+
+std::cout <<  "Display call:" << std::endl;
+std::cout << "  -> Rows: " << p_rows << std::endl;
+std::cout << "  -> X Coord: " << p_x_coord << std::endl;
+std::cout << "  -> Y Coord: " << p_y_coord << std::endl;
+
+  // Wrap around if coordinates would place sprite off screen.
+  p_x_coord = p_x_coord % 64;
+  p_y_coord = p_y_coord % 32;
+
   // For p_rows:
+  variable_registers_[0xF].Write(0);
   for (int i = 0; i < p_rows; i++) { 
+    std::cout << "I: " << i << std::endl;
     // Grab the current byte of the sprite from address stored in index register + i
     std::bitset<8> sprite = memory_.Read(index_register_.Read().to_ulong() + i);
+
+std::cout << "Current sprite line: " << sprite.to_string() << std::endl;
+
     for (int j = 7; j > -1; j--) { // Iterate over each bit in the byte left to right.
+
       // Check if a pixel would be drawn on an existing pixel
       if (main_display_.GetPixel(p_y_coord + i, p_x_coord + (7-j)) && sprite[j]) {
         // Write 1 to the flag register.
-        variable_registers_[0xF].Write(std::bitset<8>(1)); 
+        main_display_.SetPixel(p_y_coord + i, p_x_coord + (7-j), 0);
+        variable_registers_[0xF].Write(1); 
       }
       // If there wasn't a collision, check if the pixel should be drawn. 
       else if (sprite[j]) {
@@ -501,13 +486,6 @@ void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
     if (p_y_coord + i >= main_display_.get_pixel_height()) {
       break;
     }
-  }
-}
-
-void Emu::SetSpriteMemoryAddress(int p_register_number) {
-  int sprite_value = variable_registers_[p_register_number].Read().to_ulong();
-  if (sprite_value >= 0 && sprite_value <= 0xF) {
-    index_register_.Write(std::bitset<16>(0x50 + sprite_value));
   }
 }
 
@@ -539,7 +517,7 @@ void Emu::InitializeFonts() {
 void Emu::GenerateRandom(int p_register, int p_mask) {
   int start_value = rand() % 0x100;
   start_value &= p_mask;
-  variable_registers_[p_register].Write(start_value);
+  set_register(p_register, start_value);
 }
 
 void Emu::DelayTick() {

@@ -22,37 +22,21 @@ int main(int argc, char* argv[]) {
 
     Emu* emu = new Emu(renderer);
 
-    // emu->set_register(0, 1);
-    // emu->LoadInstruction(0x202, 0xE0A1);
+    std::ifstream input("../roms/tetris.rom", std::ifstream::binary);
 
-    // emu->Step();
-    // SDL_Delay(1000);
-    // emu->Step();
+    input.seekg(0, std::ios::end);
+    int length = input.tellg();
+    input.seekg(0, std::ios::beg);
 
-    std::vector<int> random_bytes;
-    int MAX_BYTE = 0xFF;
+    std::cout << "Size of input buffer: " << length << std::endl;
 
-    for (int i = 0; i <= 0xF; i++) {
-      random_bytes.emplace_back(rand() % MAX_BYTE);
-      emu->set_memory(i, random_bytes[i]);
+    int address_start = 0x200;
+
+    for (int i = 0; i < length; i++) {
+      emu->set_memory(address_start + i, input.get());
     }
-
-    std::ifstream input("../roms/Maze.ch8");
-    std::vector<char> bytes(
-      (std::istreambuf_iterator<char>(input)),
-      (std::istreambuf_iterator<char>())
-    );
 
     input.close();
-
-    for (int i = 0; i < bytes.size(); i += 2) {
-      char first_byte = bytes[i];
-      char second_byte = bytes[i+1];
-      std::bitset<8> first_bits((int)first_byte);
-      std::bitset<8> second_bits((int)second_byte);
-      std::bitset<16> instruction(first_bits.to_string() + second_bits.to_string());
-      emu->LoadInstruction(0x200 + i, instruction);
-    }
 
     emu->Start();
 

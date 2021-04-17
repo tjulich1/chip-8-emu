@@ -118,6 +118,11 @@ public:
   void set_memory(int p_address, int p_value);
 
   /**
+   * Updates sound timer to new timer value.
+   */ 
+  void set_sound_timer(int p_new_timer_value);
+
+  /**
    * Returns the current value of the sound timer.
    */
   int get_sound_timer();
@@ -270,15 +275,6 @@ private:
    */
   void AddRegisterToIndex(int p_register_number);
 
-  /**
-   * Sets the sound timer to the value stored in register p_register_number.
-   */
-  void SetSoundTimer(int p_register_number);
-
-  /**
-   * Sets the delay timer to the value stored in register p_register_number.
-   */
-  void SetDelayTimer(int p_register_number);
 
   /**
    * Skips the next instruction if the value in p_register_number == p_value.
@@ -425,7 +421,5 @@ private:
    */
   static Uint32 sound_timer_callback(Uint32 p_interval, void* p_param);
 };
-
-
 
 #endif

@@ -600,15 +600,227 @@ TEST_CASE("Testing skip following if register not equal", "[instructions]") {
     int random_value = rand() % 0x100;
     test_emu.set_register(register_num, register_value);
     test_emu.set_program_counter(0);
-    std::bitset<16> instruction((0x4<<12) + (register_num<<8) + random_value);
+    std::bitset<16> instruction((4 << 12) + (register_num << 8) + random_value);
     test_emu.LoadInstruction(0, instruction);
     test_emu.Step();
 
     if (register_value == random_value) {
-      REQUIRE(test_emu.get_program_counter() == 0x2);
+      REQUIRE(test_emu.get_program_counter() == 2);
     } else {
-      REQUIRE(test_emu.get_program_counter() == 0x4);
+      REQUIRE(test_emu.get_program_counter() == 4);
     }
 
+  }
+}
+
+TEST_CASE("Testing skip following if registers are equal", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int register_one = random_register();
+    int register_two = random_register();
+
+    while (register_two == register_one) {
+      register_two = random_register();
+    }
+
+    int value_one = rand() % 0x100;
+    int value_two = rand() % 0x100;
+
+    test_emu.set_register(register_one, value_one);
+    test_emu.set_register(register_two, value_two);
+
+    std::bitset<16> instruction((5 << 12) + (register_one << 8) + (register_two << 4));
+
+    test_emu.LoadInstruction(0, instruction);
+    test_emu.set_program_counter(0);
+    test_emu.Step();
+
+    if (value_one == value_two) {
+      REQUIRE(test_emu.get_program_counter() == 4);
+    } else {
+      REQUIRE(test_emu.get_program_counter() == 2);
+    }
+  }
+}
+
+TEST_CASE("Testing logical OR instruction", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int first_value = rand() % 0x100;
+    int second_value = rand() % 0x100;
+    int first_register = random_register();
+    int second_register = random_register();
+    while (first_register == second_register) {
+      first_register = random_register();
+    }
+
+    test_emu.set_register(first_register, first_value);
+    test_emu.set_register(second_register, second_value);
+
+    std::bitset<8> expected(first_value | second_value);
+
+    test_emu.set_program_counter(0);
+    test_emu.LoadInstruction(0, (8 << 12) + (first_register << 8) + (second_register << 4) + 1);
+    test_emu.Step();
+
+    REQUIRE(test_emu.get_register(first_register) == expected.to_ulong());
+  }
+}
+
+TEST_CASE("Testing XOR instruction", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int first_value = rand() % 0x100;
+    int second_value = rand() % 0x100;
+    int first_register = random_register();
+    int second_register = random_register();
+
+    while (first_register == second_register) {
+      first_register = random_register();
+    }
+
+    std::bitset<8> expected(first_value ^ second_value);
+
+    test_emu.set_register(first_register, first_value);
+    test_emu.set_register(second_register, second_value);
+
+    test_emu.set_program_counter(0);
+    test_emu.LoadInstruction(0, (8 << 12) + (first_register << 8) + (second_register << 4) + 3);
+
+    test_emu.Step();
+
+    REQUIRE(test_emu.get_register(first_register) == expected.to_ulong());
+  }
+}
+
+TEST_CASE("Testing AND instruction", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int first_value = rand() % 0x100;
+    int second_value = rand() % 0x100;
+    int first_register = random_register();
+    int second_register = random_register();
+
+    while (first_register == second_register) {
+      first_register = random_register();
+    }
+
+    test_emu.set_register(first_register, first_value);
+    test_emu.set_register(second_register, second_value);
+
+    std::bitset<8> expected(first_value & second_value);
+
+    test_emu.set_program_counter(0);
+    test_emu.LoadInstruction(0, (8 << 12) + (first_register << 8) + (second_register << 4) + 2);
+    test_emu.Step();
+
+    REQUIRE(test_emu.get_register(first_register) == expected.to_ulong());
+  }
+}
+
+TEST_CASE("Testing subtract registers instruction", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int first_register = random_register();
+    int second_register = random_register();
+    int first_value = rand() % 0x100;
+    int second_value = rand() % 0x100;
+
+    //std::cout << "First value: " << first_value << std::endl;
+    //std::cout << "Second value: " << second_value << std::endl;
+
+    std::bitset<8> expected(first_value - second_value);
+
+    while (first_register == 0xF || first_register == second_register) {
+      first_register = random_register();
+    }
+
+    while (second_register == 0xF || second_register == first_register) {
+      second_register = random_register();
+    }
+
+    int expected_flag_value = 0;
+    if (first_value >= second_value) {
+      expected_flag_value = 1;
+    }
+
+    //std::cout << "Expected flag value: " << expected_flag_value << std::endl;
+
+    test_emu.set_register(first_register, first_value);
+    test_emu.set_register(second_register, second_value);
+
+    test_emu.set_program_counter(0);
+    test_emu.LoadInstruction(0, (8 << 12) + (first_register << 8) + (second_register << 4) + 5);  
+    test_emu.Step();
+
+    REQUIRE(expected_flag_value == test_emu.get_register(0xF));
+    REQUIRE(test_emu.get_register(first_register) == expected.to_ulong());
+  }
+}
+
+TEST_CASE("Testing subtract instruction 2", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int first_register = random_register();
+    int second_register = random_register();
+
+    int first_value = rand() % 0x100;
+    int second_value = rand() % 0x100;
+
+    std::bitset<8> expected_value(second_value - first_value);
+
+    while (first_register == second_register || first_register == 0xF) {
+      first_register = random_register();
+    }
+
+    while (second_register == 0xF || second_register == first_register) {
+      second_register = random_register();
+    }
+
+    test_emu.set_register(first_register, first_value);
+    test_emu.set_register(second_register, second_value);
+
+    test_emu.set_program_counter(0);
+    test_emu.LoadInstruction(0, (8 << 12) + (first_register << 8) + (second_register << 4) + 7);
+    test_emu.Step();
+
+    int expected_flag_value = 1;
+
+    if (first_value > second_value) {
+      expected_flag_value = 0;
+    } 
+
+    REQUIRE(test_emu.get_register(0xF) == expected_flag_value);
+    REQUIRE(test_emu.get_register(first_register) == expected_value.to_ulong());
+  }
+}
+
+TEST_CASE("Testing add registers", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int first_value = rand() % 0x100;
+    int second_value = rand() % 0x100;
+
+    int first_register = random_register();
+    int second_register = random_register();
+
+    std::bitset<8> expected_value(first_value + second_value);
+
+    while (first_register == 0xF || first_register == second_register) {
+      first_register = random_register();
+    }
+
+    while (second_register == 0xF || second_register == first_register) {
+      second_register = random_register();
+    }
+
+    test_emu.set_register(first_register, first_value);
+    test_emu.set_register(second_register, second_value);
+
+    int expected_flag_value = 0;
+
+    if (first_value + second_value > 0xFF) {
+      expected_flag_value = 1;
+    }
+
+    test_emu.set_program_counter(0);
+    test_emu.LoadInstruction(0, (8 << 12) + (first_register << 8) + (second_register << 4) + 4);
+    test_emu.Step();
+
+    REQUIRE(test_emu.get_register(0xF) == expected_flag_value);
+    REQUIRE(test_emu.get_register(first_register) == expected_value.to_ulong());
   }
 }
