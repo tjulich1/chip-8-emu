@@ -78,9 +78,10 @@ void Emu::AddRegisterToIndex(int p_register_number) {
 }
 
 void Emu::SetSpriteMemoryAddress(int p_register_number) {
-  int sprite_value = variable_registers_[p_register_number].Read().to_ulong();
+  int sprite_value = get_register(p_register_number);
   if (sprite_value >= 0 && sprite_value <= 0xF) {
-    index_register_.Write(std::bitset<16>(0x50 + sprite_value));
+    // Must multiply sprite_value by 5 because each sprite has 5 rows of pixels.
+    index_register_.Write(std::bitset<16>(0x50 + (sprite_value * 5)));
   }
 }
 

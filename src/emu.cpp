@@ -76,7 +76,7 @@ bool Emu::Step() {
   // Grab the next instruction.
   std::bitset<16> current_instruction = Fetch();
 
-  PrintInstruction(current_instruction);
+  // PrintInstruction(current_instruction);
 
   // Pass the instruction to get decoded.
   Decode(current_instruction);
@@ -444,13 +444,14 @@ std::cout << "  -> Y Coord: " << p_y_coord << std::endl;
   p_x_coord = p_x_coord % 64;
   p_y_coord = p_y_coord % 32;
 
-  // For p_rows:
   variable_registers_[0xF].Write(0);
+
   for (int i = 0; i < p_rows; i++) { 
     std::cout << "I: " << i << std::endl;
     // Grab the current byte of the sprite from address stored in index register + i
     std::bitset<8> sprite = memory_.Read(index_register_.Read().to_ulong() + i);
 
+std::cout << "Reading from: " << index_register_.Read().to_ulong() + i << std::endl;
 std::cout << "Current sprite line: " << sprite.to_string() << std::endl;
 
     for (int j = 7; j > -1; j--) { // Iterate over each bit in the byte left to right.
