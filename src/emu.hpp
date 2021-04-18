@@ -313,54 +313,7 @@ private:
    * Wait for a key to be pressed, and store that value in register p_register.
    */
   void WaitForKeyPress(int p_register);
-
-  /**
-   * Stores the value found in source register into destination register. 
-   */
-  void StoreRegisterXInY(int p_src_register, int p_dest_register);
-
-  /**
-   * Takes the value stored in source register shifted one bit to the left and stores it in the 
-   * destination register. VF is set to the value of the least significant bit before the shift.
-   */
-  void ShiftRegisterLeft(int p_source_register, int p_destination_register);
-
-  /**
-   * Takes the value stored in source register shifted one bit to the right and stores it in the 
-   * destination register. VF is set to the value of the least significant bit before the shift.
-   */
-  void ShiftRegisterRight(int p_source_register, int p_destination_register);
-
-  /**
-   * Takes the values in the two registers, bitwise OR's them, and stores the result in the second 
-   * register.
-   */
-  void OrRegisters(int first_register, int second_register);
   
-  /**
-   * Takes the values in the two registers, bitwise AND's them, and stores the result in the second
-   * register.
-   */
-  void AndRegisters(int p_first_register, int p_second_register);
-
-  /**
-   * Takes the value stores in p_first_register and the value in p_second_register, XOR's the values
-   * together, and stores the result in p_second_register.
-   */ 
-  void XorRegisters(int p_first_register, int p_second_register);
-
-  /**
-   * Takes the values stores in both registers, adds them together, and stores the sum in the second
-   * register.
-   */
-  void AddRegisters(int p_first_register, int p_second_register);
-
-  /**
-   * Calculates the value of the value in p_first_register, minus the value in p_second_register,
-   * and stores the value in p_destination_register.
-   */
-  void SubtractRegisters(int p_first_register, int p_second_register, int p_destination_register);
-
   /**
    * Stores the current address on the stack, and jumps to subroutine located at p_address. 
    * p_address must be an even integer, so that program counter can stay aligned with instruction 

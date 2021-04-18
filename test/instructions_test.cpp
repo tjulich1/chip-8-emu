@@ -589,7 +589,7 @@ TEST_CASE("Testing set sprite memory address instruction", "[instructions]") {
 
   test_emu.Step();
 
-  REQUIRE(test_emu.get_index_register().to_ulong() == 0x54);
+  REQUIRE(test_emu.get_index_register().to_ulong() == 0x50 + 20);
 
 }
 
