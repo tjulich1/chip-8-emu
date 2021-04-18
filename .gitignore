@@ -6,3 +6,4 @@ SDL2.dll
 /include
 /rom_txt
 .vscode
+/rom_dumps

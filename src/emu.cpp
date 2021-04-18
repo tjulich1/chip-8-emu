@@ -124,7 +124,7 @@ void Emu::PrintRegisters() {
   
   // Print each of the variable registers.
   for (int i = 0; i < variable_registers_.size(); i++) {
-    std::cout << "V" << std::hex << i << ": " << variable_registers_[i].Read().to_ulong() 
+    std::cout << "V" << std::hex << i << ": " << get_register(i) 
       << std::endl;
   }
 }
@@ -151,17 +151,16 @@ std::bitset<16> Emu::get_index_register() {
 
 int Emu::get_register(int p_register) {
   // Initialize return value to zero.
-  std::bitset<8> value(0);
-  if (p_register > -1 && p_register < 16) {
+  int value(0);
+  if (p_register >= 0 && p_register < 16) {
     // Set return value to register value if p_register is valid.
-    value = variable_registers_[p_register].Read();
+    value = variable_registers_[p_register].Read().to_ulong();
   }
-  return value.to_ulong();
+  return value;
 }
 
 void Emu::set_register(int p_register, int p_new_value) {
-  // Make sure that 0 <= p_register < 16
-  if (p_register > -1 && p_register < 16) {
+  if (p_register >= 0 && p_register < 16) {
     variable_registers_[p_register].Write(std::bitset<8>(p_new_value));
   }
 }
@@ -196,6 +195,13 @@ void Emu::Decode(std::bitset<16> p_instruction) {
   std::bitset<16> third_mask(0x00F0);
   std::bitset<16> fourth_mask(0x000F);
 
+  int first_nibble = ((p_instruction & first_mask) >> 12).to_ulong();
+  int second_nibble = ((p_instruction & second_mask) >> 8).to_ulong();
+  int third_nibble = ((p_instruction & third_mask) >> 4).to_ulong();
+  int fourth_nibble = ((p_instruction & fourth_mask)).to_ulong();
+
+  int second_byte = (p_instruction & (third_mask | fourth_mask)).to_ulong();
+
   std::bitset<4> first(p_instruction.to_string().substr(0, 4));
   // Grab second nibble
   std::bitset<4> second(p_instruction.to_string().substr(4, 4));
@@ -204,12 +210,9 @@ void Emu::Decode(std::bitset<16> p_instruction) {
   // Grab far right nibble
   std::bitset<4> fourth(p_instruction.to_string().substr(12, 4));
 
-  // std::cout << " 0x" << std::hex << first.to_ulong() << second.to_ulong() 
-  //   << third.to_ulong() << fourth.to_ulong() << std::endl;
-
-  switch(((p_instruction & first_mask) >> 12).to_ulong()) {
+  switch(first_nibble) {
     case 0x0: {
-      switch ((p_instruction & (third_mask | fourth_mask)).to_ulong()) {
+      switch (second_byte) {
         case 0xE0: {
           ClearScreen();
           break;
@@ -235,18 +238,16 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       break;
     }
     case 0x3: {
-      int value_to_check = (p_instruction & (third_mask | fourth_mask)).to_ulong();
-      SkipIfEqual(second.to_ulong(), value_to_check);
+      SkipIfEqual(second_nibble, second_byte);
       break;
     }
     case 0x4: {
-      int value_to_check = (p_instruction & (third_mask | fourth_mask)).to_ulong();
-      SkipIfNotEqual(second.to_ulong(), value_to_check);
+      SkipIfNotEqual(second_nibble, second_byte);
       break;
     }
     case 0x5: {
-      if (fourth.to_ulong() == 0) {
-        SkipIfRegistersEqual(second.to_ulong(), third.to_ulong());
+      if (fourth_nibble == 0) {
+        SkipIfRegistersEqual(second_nibble, third_nibble);
       } else {
         std::cout << "-> Unknown instruction 0x" << std::hex << p_instruction.to_ulong() 
           << std::endl;
@@ -254,15 +255,11 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       break;
     }
     case 0x6: {
-      int register_number = second.to_ulong();
-      int new_value = (p_instruction & (third_mask | fourth_mask)).to_ulong();
-      set_register(register_number, new_value);
+      set_register(second_nibble, second_byte);
       break;
     }
     case 0x7: {
-      int register_number = second.to_ulong();
-      int value_to_add = (p_instruction & (third_mask | fourth_mask)).to_ulong();
-      AddValToRegister(register_number, value_to_add);
+      AddValToRegister(second_nibble, second_byte);
       break;
     }
     case 0x8: {
@@ -270,12 +267,9 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       break;
     }
     case 0x9: {
-      if (fourth.to_ulong() == 0) {
-        int register_one = second.to_ulong();
-        int register_two = third.to_ulong();
-        SkipIfRegistersNotEqual(register_one, register_two);
+      if (fourth_nibble == 0) {
+        SkipIfRegistersNotEqual(second_nibble, third_nibble);
       } else {
-
         std::cout << "-> UNKNOWN INSTRUCTION: 0x" << std::hex << p_instruction.to_ulong() 
           << std::endl;
       }
@@ -292,29 +286,23 @@ void Emu::Decode(std::bitset<16> p_instruction) {
       break;
     }
     case 0xC: {
-      int value = (p_instruction & (third_mask | fourth_mask)).to_ulong();
-      int destination = second.to_ulong();
-      GenerateRandom(destination, value);
+      GenerateRandom(second_nibble, second_byte);
       break;
     }
     case 0xD: {
-      int rows = fourth.to_ulong();
-      int x_coord = get_register(second.to_ulong());
-      int y_coord = get_register(third.to_ulong());
-      DisplaySprite(rows, x_coord, y_coord);
+      int x_coord = get_register(second_nibble);
+      int y_coord = get_register(third_nibble);
+      DisplaySprite(fourth_nibble, x_coord, y_coord);
       break;
     }
-    
     case 0xE: {
-      int register_num = second.to_ulong();
-      std::bitset<8> rest_of_instruction = (third.to_ulong() << 4) + fourth.to_ulong();
-      DecodeKeyInstructions(register_num, rest_of_instruction);
+      std::bitset<8> rest_of_instruction(second_byte);
+      DecodeKeyInstructions(second_nibble, rest_of_instruction);
       break;
     }
     case 0xF: {
-      int register_number = second.to_ulong();
-      std::bitset<8> last_bytes((p_instruction & (third_mask | fourth_mask)).to_ulong());
-      DecodeRegisterOps(register_number, last_bytes);
+      std::bitset<8> last_bytes(second_byte);
+      DecodeRegisterOps(second_nibble, last_bytes);
       break;
     }
     default: {
