@@ -49,7 +49,7 @@ public:
   /**
    *  Fetches, decodes, and executes the next instruction pointed to by the program counter.
    */
-  bool Step();  
+  void Step();  
 
   /**
    * Called to render the current display state to the renderer being used.
@@ -145,6 +145,7 @@ private:
   enum CustomEvents {
     DELAY_TICK, 
     SOUND_TICK,
+    STEP_TICK, 
   };
 
   /**
@@ -363,6 +364,11 @@ private:
   void SoundTick();
 
   /**
+   * Function that on emulator start, is called at 500hz to cycle the emulator.
+   */
+  void StepTick();
+
+  /**
    * When an emulator is started, it uses this callback and SDL_AddTimer to register to have 
    * DelayTick() method called every p_interval m.s.
    */
@@ -373,6 +379,13 @@ private:
    * SoundTick() method called every p_interval m.s.
    */
   static Uint32 sound_timer_callback(Uint32 p_interval, void* p_param);
+
+  /**
+   * When an emulator is started, it uses this callback and SDL_AddTimer to register to have 
+   * StepTick() called every p_interval m.s.
+   */
+  static Uint32 step_timer_callback(Uint32 p_interval, void* p_param);
+
 };
 
 #endif
