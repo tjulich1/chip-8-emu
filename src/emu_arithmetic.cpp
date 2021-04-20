@@ -40,7 +40,7 @@ void Emu::DecodeRegisterArithmetic(std::bitset<16> p_instruction) {
         set_register(0xF, 0);
       }
       break;
-    }
+    }  
     case 5: {
       if (second_value < first_value) {
         set_register(0xF, 0);

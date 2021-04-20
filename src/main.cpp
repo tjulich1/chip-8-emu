@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 
     Emu* emu = new Emu(renderer);
 
-    std::ifstream input("../roms/tetris.rom", std::ifstream::binary);
+    std::ifstream input("../roms/Breakout [Carmelo Cortez, 1979].ch8", std::ifstream::binary);
 
     input.seekg(0, std::ios::end);
     int length = input.tellg();

@@ -9,7 +9,7 @@
 Emu::Emu() {
   InitializeFonts();
   program_counter_ = PROGRAM_START;
-  set_index_register(0);
+  set_index_register(0); 
 }
 
 Emu::Emu(SDL_Renderer* p_renderer) {
@@ -452,12 +452,6 @@ void Emu::ReturnFromSubroutine() {
 }
 
 void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
-
-// std::cout <<  "Display call:" << std::endl;
-// std::cout << "  -> Rows: " << p_rows << std::endl;
-// std::cout << "  -> X Coord: " << p_x_coord << std::endl;
-// std::cout << "  -> Y Coord: " << p_y_coord << std::endl;
-
   // Wrap around if coordinates would place sprite off screen.
   p_x_coord = p_x_coord % 64;
   p_y_coord = p_y_coord % 32;
@@ -465,12 +459,8 @@ void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
   variable_registers_[0xF].Write(0);
 
   for (int i = 0; i < p_rows; i++) { 
-    std::cout << "I: " << i << std::endl;
     // Grab the current byte of the sprite from address stored in index register + i
     std::bitset<8> sprite = memory_.Read(index_register_.Read().to_ulong() + i);
-
-// std::cout << "Reading from: " << index_register_.Read().to_ulong() + i << std::endl;
-// std::cout << "Current sprite line: " << sprite.to_string() << std::endl;
 
     for (int j = 7; j > -1; j--) { // Iterate over each bit in the byte left to right.
 

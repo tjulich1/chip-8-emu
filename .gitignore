@@ -7,3 +7,5 @@ SDL2.dll
 /rom_txt
 .vscode
 /rom_dumps
+backup_make.mk
+/objects

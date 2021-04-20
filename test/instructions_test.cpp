@@ -824,3 +824,33 @@ TEST_CASE("Testing add registers", "[instructions]") {
     REQUIRE(test_emu.get_register(first_register) == expected_value.to_ulong());
   }
 }
+
+TEST_CASE("Testing shift register right", "[instructions]") {
+  for (int i = 0; i < CASES; i++) {
+    int first_register = random_register();
+
+    std::cout << "Test?" << std::endl;
+
+    while (first_register == 0xF) {
+      first_register = random_register();
+    }
+
+    int second_register = random_register();
+
+    while (second_register == 0xF || second_register == first_register) {
+      second_register = random_register();
+    }
+
+    int first_value = rand() % 0x100;
+
+    int expected_least_sig = first_value & 1;
+
+    test_emu.set_register(first_register, first_value);
+    test_emu.set_program_counter(0);
+    test_emu.LoadInstruction(0, (0x8 << 12) + (second_register << 8) + (first_register << 4) + 6);
+    test_emu.Step();
+
+    REQUIRE(test_emu.get_register(0xF) == expected_least_sig);
+    REQUIRE(test_emu.get_register(second_register) == first_value >> 1);
+  }
+}
