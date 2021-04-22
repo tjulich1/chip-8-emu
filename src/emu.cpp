@@ -82,9 +82,6 @@ void PrintInstruction(std::bitset<16> p_instruction) {
 }
 
 void Emu::Step() {
-
-  std::cout << "Step" << std::endl;
-
   // Grab the next instruction.
   std::bitset<16> current_instruction = Fetch();
 
