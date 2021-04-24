@@ -23,8 +23,8 @@ Emu::Emu(SDL_Renderer* p_renderer) {
 }
 
 void Emu::Start() {
-  SDL_AddTimer(1000, delay_timer_callback, this);
-  SDL_AddTimer(1000, sound_timer_callback, this);
+  SDL_AddTimer(1000 / 60, delay_timer_callback, this);
+  SDL_AddTimer(1000 / 60, sound_timer_callback, this);
   SDL_AddTimer(2, step_timer_callback, this);
 
   bool running = true;
@@ -39,17 +39,14 @@ void Emu::Start() {
           break;
         }
         case SDL_USEREVENT: {
-          // std::cout << "User event" << std::endl;
           HandleUserEvent(e);
           break;
         }
         case SDL_KEYDOWN: {
-           std::cout << "Keydown" << std::endl;
           keyboard_.HandleKeyDown(e.key.keysym.scancode);
           break;
         }
         case SDL_KEYUP: {
-          // std::cout << "Keyup" << std::endl;
           keyboard_.HandleKeyUp(e.key.keysym.scancode);
           break;
         }

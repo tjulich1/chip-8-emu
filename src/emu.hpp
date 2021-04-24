@@ -354,12 +354,12 @@ private:
   void GenerateRandom(int p_register, int p_mask);
 
   /**
-   * Function that on emulator start, is called once every second to decrement delay counter.
+   * Function that on emulator start, is called 60 times a second to decrement delay counter.
    */
   void DelayTick();
 
   /**
-   * Function that on emulator start, is called once every second to decrement the sound counter.
+   * Function that on emulator start, is called 60 times a second to decrement sound counter.
    */
   void SoundTick();
 

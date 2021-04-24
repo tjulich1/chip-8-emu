@@ -6,9 +6,9 @@ LIB_PATH = -Llib/SDL2
 
 OPTIONS =
 
-LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2
+TEST_LINKER_FLAGS = -lmingw32 -lSDL2 -lSDL_ttf
 
-TEST_LINKER_FLAGS = -lmingw32 -lSDL2
+LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf
 
 OBJ_NAME = chip-8
 

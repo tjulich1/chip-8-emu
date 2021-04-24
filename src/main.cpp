@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <SDL.h>
+#include <SDL_ttf.h>
 #include <string>
 #include <vector>
 
@@ -81,5 +82,11 @@ bool init_sdl() {
     success = false;
     std::cout << "Unable to initialize SDL: " << SDL_GetError() << std::endl;
   }
+
+  if (TTF_Init() == -1) {
+    success = false;
+    std::cout << "Unable to initialize SDL_ttf: " << TTF_GetError() << std::endl;
+  }
+
   return success;
 }
