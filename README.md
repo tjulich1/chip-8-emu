@@ -10,25 +10,15 @@ This is my Chip-8 emulator project which im basing off the following specs:
   - 60hz delay timer
   - 60hz sound timer
 
-Supported Instructions:
-  - 0E00 - Clear screen
-  - 1NNN - Jump
-  - 3XNN - Skip if equal
-  - 6XNN - Set register VX
-  - 7XNN - Add to register VX
-  - 8XY0 - Store VY in VX
-  - ANNN - Set index register
-  - BNNN - Set program counter
-  - DXYN - Draw sprite
-  - FX15 - Set delay timer
-  - FX18 - Set sound timer
-  - FX1E - Add register to index
-  - FX33 - Store binary coded decimal
-  - FX55 - Store registers to memory
-  - FX65 - Read memory to registers
+Supports all 35 original Chip-8 instructions, a list of which can be found [here](https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Instruction-Set)
 
-Aiming to support all classic chip-8 instructions.
+Big thanks to Matt Mikolay who created the above list, as it was extremely helpful for developing this emulator!
 
-Currently, this emulator has only been tested and confirmed to work on the IBM Chip-8 test rom (included in this repo).
+Although all 35 instructions are implemented, there are still some bugs present in some roms. I have only confirmed that Tetris and the IBM Logo Rom work as expected.
 
+Features in progress:
+  - View panel for the 16 variable registers, to show values during runtime. 
+  - View panel for viewing contents of memory.
+
+![Capture](https://user-images.githubusercontent.com/33639246/116004825-6e1f2600-a5b9-11eb-8876-5bf1c1a4dac5.JPG)
 ![Capture](https://user-images.githubusercontent.com/33639246/113223386-e6eec480-923d-11eb-8411-ddf3da644aa2.JPG)
