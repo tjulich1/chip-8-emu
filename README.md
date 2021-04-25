@@ -1,7 +1,5 @@
-# chip-8-emu
-Chip-8 Emulator
-
-Chip-8 emulator based off of the original VM specifications:
+# Chip-8 Emulator
+Emulator based off of the original VM specifications:
   - 4kB RAM (4096 addresses, 8-bit stored values)
   - 64x32 pixel display
   - 16 16-bit Variable registers V0-VF
