@@ -1,4 +1,4 @@
-OBJS = objects/display.o objects/ram.o objects/emu.o objects/emu_arith.o objects/emu_reg.o objects/keyboard.o objects/main.o
+OBJS = objects/display.o objects/ram.o objects/emu.o objects/emu_arith.o objects/emu_reg.o objects/keyboard.o objects/emu_panel.o objects/main.o
 
 INCLUDE_PATH = -Iinclude/SDL2
 
@@ -39,6 +39,9 @@ $(OBJ_DIR)/objects/emu_arith.o: src/emu_arithmetic.cpp
 
 $(OBJ_DIR)/keyboard.o: src/keyboard_input.cpp
 	g++ -c src/keyboard_input.cpp $(INCLUDE_PATH) -o $(OBJ_DIR)/keyboard.o 
+
+$(OBJ_DIR)/emu_panel.o: src/emulator_panel.cpp
+	g++ -c src/emulator_panel.cpp $(INCLUDE_PATH) -o $(OBJ_DIR)/emu_panel.o
 
 test: $(OBJ_DIR)/*.o
 	g++ -o build/test $(OBJ_DIR)/*.o $(LIB_PATH) $(TEST_LINKER_FLAGS) 
