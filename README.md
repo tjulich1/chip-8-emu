@@ -1,7 +1,7 @@
 # chip-8-emu
 Chip-8 Emulator
 
-This is my Chip-8 emulator project which im basing off the following specs:
+Chip-8 emulator based off of the original VM specifications:
   - 4kB RAM (4096 addresses, 8-bit stored values)
   - 64x32 pixel display
   - 16 16-bit Variable registers V0-VF
@@ -19,6 +19,8 @@ Although all 35 instructions are implemented, there are still some bugs present 
 Features in progress:
   - View panel for the 16 variable registers, to show values during runtime. 
   - View panel for viewing contents of memory.
+  - Adding sound
+  - Pause feature
 
 ![Capture](https://user-images.githubusercontent.com/33639246/116004825-6e1f2600-a5b9-11eb-8876-5bf1c1a4dac5.JPG)
 ![Capture](https://user-images.githubusercontent.com/33639246/113223386-e6eec480-923d-11eb-8411-ddf3da644aa2.JPG)
