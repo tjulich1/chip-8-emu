@@ -1,5 +1,8 @@
 // Trent Julich ~ 24 April 2021
 
+#ifndef PANEL_HPP
+#define PANEL_HPP
+
 #include <SDL.h>
 
 class Panel {
@@ -27,3 +30,5 @@ class Panel {
     int width_;
     int height_;
 };
+
+#endif

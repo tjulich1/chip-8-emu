@@ -22,40 +22,6 @@ Emu::Emu(SDL_Renderer* p_renderer) {
   program_counter_ = PROGRAM_START;
 }
 
-void Emu::Start() {
-  SDL_AddTimer(1000 / 60, delay_timer_callback, this);
-  SDL_AddTimer(1000 / 60, sound_timer_callback, this);
-  SDL_AddTimer(2, step_timer_callback, this);
-
-  bool running = true;
-
-  while (running) {
-    SDL_Event e;
-    while(SDL_PollEvent(&e)) {
-
-      switch (e.type) {
-        case SDL_QUIT: {
-          running = false;
-          break;
-        }
-        case SDL_USEREVENT: {
-          HandleUserEvent(e);
-          break;
-        }
-        case SDL_KEYDOWN: {
-          keyboard_.HandleKeyDown(e.key.keysym.scancode);
-          break;
-        }
-        case SDL_KEYUP: {
-          keyboard_.HandleKeyUp(e.key.keysym.scancode);
-          break;
-        }
-      }
-
-    }
-  }
-}
-
 void Emu::LoadInstruction(int p_address, std::bitset<16> p_instruction) { 
   // Grab the leftmost 8 bits of the instruction.
   std::bitset<8> first_byte(p_instruction.to_string().substr(0, 8));
@@ -91,14 +57,8 @@ void Emu::Step() {
 }
 
 void Emu::Render() {
-  // Fill with white
-  SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
-  SDL_RenderClear(renderer_);
-
   // Draw the display
   main_display_.Render();
-
-  SDL_RenderPresent(renderer_);
 }
 
 void Emu::PrintMemory(int p_address) {
@@ -191,6 +151,10 @@ void Emu::set_delay_timer(int p_new_timer_value) {
 
 int Emu::get_delay_timer() {
   return delay_timer_;
+}
+
+std::array<Register<8>, 16>* Emu::get_variable_registers() {
+  return &variable_registers_;
 }
 
 void Emu::Decode(std::bitset<16> p_instruction) {
@@ -350,6 +314,14 @@ void Emu::HandleUserEvent(SDL_Event e) {
     default:
       std::cout << "Unknown event: " << e.user.code << std::endl;
   }
+}
+
+void Emu::KeyDown(SDL_Scancode p_code) {
+  keyboard_.HandleKeyDown(p_code); 
+}
+
+void Emu::KeyUp(SDL_Scancode p_code) {
+  keyboard_.HandleKeyUp(p_code);
 }
 
 std::bitset<16> Emu::Fetch() {
@@ -532,23 +504,3 @@ void Emu::StepTick() {
   SDL_PushEvent(&event);
 }
 
-Uint32 Emu::delay_timer_callback(Uint32 p_interval, void* param) {
-  // Cast the void pointer to a pointer to the emulator we are wanting to call DelayTick on.
-  Emu* emu = static_cast<Emu*>(param);
-  emu->DelayTick();
-  return p_interval;
-}
-
-Uint32 Emu::sound_timer_callback(Uint32 p_interval, void* param) {
-  // Cast the void pointer to a pointer to the emulator we are wanting to call DelayTick on.
-  Emu* emu = static_cast<Emu*>(param);
-  emu->SoundTick();
-  return p_interval;
-}
-
-Uint32 Emu::step_timer_callback(Uint32 p_interval, void* p_param) {
-  // Cast void pointer to a pointer to the emulator we are wanting to call Step on.
-  Emu* emu = static_cast<Emu*>(p_param);
-  emu->StepTick();
-  return p_interval;
-}

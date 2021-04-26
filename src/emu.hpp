@@ -40,11 +40,6 @@ public:
    * mem[p_address] and the right byte is stored in mem[p_address + 1];
    */
   void LoadInstruction(int p_address, std::bitset<16> p_instruction);
-  
-  /**
-   * Starts emulator execution starting at current PC.
-   */
-  void Start();
 
   /**
    *  Fetches, decodes, and executes the next instruction pointed to by the program counter.
@@ -137,6 +132,41 @@ public:
    */
   int get_delay_timer();
 
+  /**
+   * Returns reference to the array that contains all variable registers.
+   */
+  std::array<Register<8>, 16>* get_variable_registers();
+
+  /**
+   * Function that on emulator start, is called 60 times a second to decrement delay counter.
+   */
+  void DelayTick();
+
+  /**
+   * Function that on emulator start, is called 60 times a second to decrement sound counter.
+   */
+  void SoundTick();
+
+  /**
+   * Function that on emulator start, is called at 500hz to cycle the emulator.
+   */
+  void StepTick();
+
+  /**
+   * Helper method used to handle user defined events.
+   */
+  void HandleUserEvent(SDL_Event p_e);
+
+  /**
+   * Method called when a key press occurs.
+   */ 
+  void KeyDown(SDL_Scancode p_code);
+
+  /**
+   * Method called when a key is released.
+   */
+  void KeyUp(SDL_Scancode p_code);
+
 private:
 
   /**
@@ -202,11 +232,6 @@ private:
    * Vector serving as a stack to store 16 bit return addresses.
    */
   std::vector<std::bitset<16>> ret_address_stack_;
-
-    /**
-   * Helper method used to handle user defined events.
-   */
-  void HandleUserEvent(SDL_Event p_e);
 
   /**
    * Method used to grab and return the instruction pointed to by program counter. The program 
@@ -351,22 +376,7 @@ private:
   /**
    * Generates a random number, AND masks it with p_mask, and stores in register p_register.
    */
-  void GenerateRandom(int p_register, int p_mask);
-
-  /**
-   * Function that on emulator start, is called 60 times a second to decrement delay counter.
-   */
-  void DelayTick();
-
-  /**
-   * Function that on emulator start, is called 60 times a second to decrement sound counter.
-   */
-  void SoundTick();
-
-  /**
-   * Function that on emulator start, is called at 500hz to cycle the emulator.
-   */
-  void StepTick();
+  void GenerateRandom(int p_register, int p_mask);  
 
   /**
    * When an emulator is started, it uses this callback and SDL_AddTimer to register to have 

@@ -9,3 +9,4 @@ SDL2.dll
 /rom_dumps
 backup_make.mk
 /objects
+/screenshots
