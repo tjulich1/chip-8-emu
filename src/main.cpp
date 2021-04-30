@@ -82,7 +82,7 @@ void load_rom(Emu* p_emu, std::ifstream& p_rom_buffer, int p_rom_length) {
  * Called to start emulation of the selected rom. Also registers emulator for timing events for 
  * the delay counter, sound timer, and main execution loop timing. 
  */
-void start_emulator(Emu* p_emu, SDL_Renderer* p_renderer) {
+void start_emulator(Emu* p_emu, SDL_Renderer* p_renderer, FontAtlas* p_font_atlas) {
   SDL_AddTimer(1000 / 60, delay_timer_callback, p_emu);
   SDL_AddTimer(1000 / 60, sound_timer_callback, p_emu);
   SDL_AddTimer(2, step_timer_callback, p_emu);
@@ -90,7 +90,8 @@ void start_emulator(Emu* p_emu, SDL_Renderer* p_renderer) {
   std::vector<Panel*> components;
   
   components.emplace_back(new EmulatorPanel(0, 0, EMULATOR_WIDTH, EMULATOR_HEIGHT, p_emu));
-  components.emplace_back(new VariableRegisterPanel(EMULATOR_WIDTH, 0, REGISTER_WIDTH, WINDOW_HEIGHT, p_emu->get_variable_registers()));
+  components.emplace_back(new VariableRegisterPanel(EMULATOR_WIDTH, 0, REGISTER_WIDTH,
+    WINDOW_HEIGHT, p_emu->get_variable_registers(), p_font_atlas));
 
   bool running = true;
 
@@ -147,9 +148,13 @@ int main(int argc, char* argv[]) {
 
           if (renderer) {
             Emu* emu = new Emu(renderer);
-          
+            std::string font_path = "../fonts/OpenSans-Regular.ttf";
+            std::string characters = "0123456789ABCDEFIndex:P";
+            FontAtlas* font_atlas = new FontAtlas(font_path, 24, characters, renderer);
+
             load_rom(emu, input, length);
-            start_emulator(emu, renderer);
+
+            start_emulator(emu, renderer, font_atlas);
       
             delete emu;
           } else {

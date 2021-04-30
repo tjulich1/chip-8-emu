@@ -1,4 +1,6 @@
-OBJS = objects/display.o objects/ram.o objects/emu.o objects/emu_arith.o objects/emu_reg.o objects/keyboard.o objects/emu_panel.o objects/reg_panel.o objects/main.o
+OBJS = objects/font_atlas.o objects/display.o objects/ram.o objects/emu.o objects/emu_arith.o 
+OBJS += objects/emu_reg.o objects/keyboard.o objects/emu_panel.o objects/reg_panel.o 
+OBJS += objects/main.o 
 
 INCLUDE_PATH = -Iinclude/SDL2
 
@@ -45,6 +47,9 @@ $(OBJ_DIR)/emu_panel.o: src/emulator_panel.cpp
 
 $(OBJ_DIR)/reg_panel.o: src/var_register_panel.cpp
 	g++ -c src/var_register_panel.cpp $(INCLUDE_PATH) -o $(OBJ_DIR)/reg_panel.o
+
+$(OBJ_DIR)/font_atlas.o: src/font_atlas.cpp
+	g++ -c src/font_atlas.cpp $(INCLUDE_PATH) -o $(OBJ_DIR)/font_atlas.o
 
 test: $(OBJ_DIR)/*.o
 	g++ -o build/test $(OBJ_DIR)/*.o $(LIB_PATH) $(TEST_LINKER_FLAGS) 
