@@ -14,7 +14,7 @@
 
 const int PIXEL_SIZE = 10;
 
-const int REGISTER_WIDTH = 100;
+const int REGISTER_WIDTH = 200;
 const int EMULATOR_WIDTH = 64*PIXEL_SIZE;
 const int EMULATOR_HEIGHT = 32*PIXEL_SIZE;
 
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
           if (renderer) {
             Emu* emu = new Emu(renderer);
             std::string font_path = "../fonts/OpenSans-Regular.ttf";
-            std::string characters = "0123456789ABCDEFIndex:PV";
+            std::string characters = "0123456789abcdf Index:PV";
             FontAtlas* font_atlas = new FontAtlas(font_path, 24, characters, renderer);
 
             load_rom(emu, input, length);

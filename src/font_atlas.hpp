@@ -23,6 +23,11 @@ class FontAtlas {
      */
     bool RenderText(std::string p_text, int p_x, int p_y);
 
+    /**
+     * Returns the height of a single character, or the height of a single line of text.
+     */
+    int get_line_height();
+
   private: 
 
     /**
@@ -41,6 +46,11 @@ class FontAtlas {
      * The renderer to
      */
     SDL_Renderer* renderer_;
+
+    /**
+     * Height of one line of text.
+     */
+    int line_height_;
 
     /**
      * Calculates the clipping box around each individual character in p_characters if they were 
