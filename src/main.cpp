@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
           if (renderer) {
             Emu* emu = new Emu(renderer);
             std::string font_path = "../fonts/OpenSans-Regular.ttf";
-            std::string characters = "0123456789ABCDEFIndex:P";
+            std::string characters = "0123456789ABCDEFIndex:PV";
             FontAtlas* font_atlas = new FontAtlas(font_path, 24, characters, renderer);
 
             load_rom(emu, input, length);

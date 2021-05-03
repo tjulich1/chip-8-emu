@@ -19,13 +19,27 @@ class FontAtlas {
       SDL_Renderer* p_renderer);
 
     /**
-     * 
+     * Method used to render the string p_text at x, y.
      */
-    bool RenderText(std::string p_text, SDL_Renderer* p_renderer, SDL_Rect* p_dest_rect);
+    bool RenderText(std::string p_text, int p_x, int p_y);
 
   private: 
-    std::map<char, SDL_Rect> clipping_rects_;
+
+    /**
+    * Map of characters to bounding boxes, where the bounding boxes contain info about the characters
+    * location in the font atlas.
+    */
+    std::map<char, SDL_Rect*> clipping_rects_;
+    
+    /**
+     * Texture containing all initialized characters rendered using the font passed into 
+     * construction.
+     */
     SDL_Texture* font_atlas_;
+
+    /**
+     * The renderer to
+     */
     SDL_Renderer* renderer_;
 
     /**

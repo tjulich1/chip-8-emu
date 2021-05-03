@@ -5,6 +5,7 @@
 VariableRegisterPanel::VariableRegisterPanel(int p_x, int p_y, int p_width, int p_height, 
   std::array<Register<8>, 16>* p_registers, FontAtlas* p_font_atlas) : Panel(p_x, p_y, p_width, p_height) {
   registers_ = p_registers;
+  font_atlas_ = p_font_atlas;
 }
 
 void VariableRegisterPanel::Render(SDL_Renderer* p_renderer) {
@@ -13,4 +14,6 @@ void VariableRegisterPanel::Render(SDL_Renderer* p_renderer) {
     x_, y_, width_, height_
   };
   SDL_RenderFillRect(p_renderer, &bounds);
+
+  font_atlas_->RenderText("V0", x_, y_);
 }

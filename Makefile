@@ -6,7 +6,7 @@ INCLUDE_PATH = -Iinclude/SDL2
 
 LIB_PATH = -Llib/SDL2
 
-OPTIONS =
+OPTIONS = -g
 
 TEST_LINKER_FLAGS = -lmingw32 -lSDL2 -lSDL_ttf
 
