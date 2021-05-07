@@ -829,8 +829,6 @@ TEST_CASE("Testing shift register right", "[instructions]") {
   for (int i = 0; i < CASES; i++) {
     int first_register = random_register();
 
-    std::cout << "Test?" << std::endl;
-
     while (first_register == 0xF) {
       first_register = random_register();
     }

@@ -82,6 +82,11 @@ public:
   int get_program_counter();
 
   /**
+   * Gets a pointer to the program counter register.
+   */ 
+  Register<16>* get_pc_pointer();
+
+  /**
    * Write the value p_index_value into the index register.
    */
   void set_index_register(int p_index_value);

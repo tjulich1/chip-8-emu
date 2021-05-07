@@ -3,6 +3,7 @@
 #include "emu.hpp"
 #include "keyboard_input.hpp"
 #include "emulator_panel.hpp"
+#include "pc_panel.hpp"
 #include "var_register_panel.hpp"
 
 #include <fstream>
@@ -15,10 +16,11 @@
 const int PIXEL_SIZE = 10;
 
 const int REGISTER_WIDTH = 200;
+const int PROGRAM_COUNTER_HEIGHT = 50;
 const int EMULATOR_WIDTH = 64*PIXEL_SIZE;
 const int EMULATOR_HEIGHT = 32*PIXEL_SIZE;
 
-const int WINDOW_HEIGHT = EMULATOR_HEIGHT;
+const int WINDOW_HEIGHT = EMULATOR_HEIGHT + PROGRAM_COUNTER_HEIGHT;
 const int WINDOW_WIDTH = EMULATOR_WIDTH + REGISTER_WIDTH; 
 
 static Uint32 sound_timer_callback(Uint32 p_interval, void* p_param);
@@ -92,6 +94,8 @@ void start_emulator(Emu* p_emu, SDL_Renderer* p_renderer, FontAtlas* p_font_atla
   components.emplace_back(new EmulatorPanel(0, 0, EMULATOR_WIDTH, EMULATOR_HEIGHT, p_emu));
   components.emplace_back(new VariableRegisterPanel(EMULATOR_WIDTH, 0, REGISTER_WIDTH,
     WINDOW_HEIGHT, p_emu->get_variable_registers(), p_font_atlas));
+  components.emplace_back(new ProgramCounterPanel(0, EMULATOR_HEIGHT, WINDOW_WIDTH, 
+    PROGRAM_COUNTER_HEIGHT, p_font_atlas, p_emu));
 
   bool running = true;
 

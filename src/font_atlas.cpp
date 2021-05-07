@@ -32,6 +32,7 @@ bool FontAtlas::RenderText(std::string p_text, int p_x, int p_y) {
   for (int i = 0; i < p_text.size(); i++) {
     if (clipping_rects_.find(p_text[i]) == clipping_rects_.end()) {
       success = false;
+      std::cout << "Unknown character: " << p_text[i] << std::endl;
       break;
     }
   }

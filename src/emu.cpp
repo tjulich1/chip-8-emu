@@ -427,9 +427,7 @@ void Emu::DisplaySprite(int p_rows, int p_x_coord, int p_y_coord) {
   for (int i = 0; i < p_rows; i++) { 
     // Grab the current byte of the sprite from address stored in index register + i
     std::bitset<8> sprite = memory_.Read(index_register_.Read().to_ulong() + i);
-
     for (int j = 7; j > -1; j--) { // Iterate over each bit in the byte left to right.
-
       // Check if a pixel would be drawn on an existing pixel
       if (main_display_.GetPixel(p_y_coord + i, p_x_coord + (7-j)) && sprite[j]) {
         // Write 1 to the flag register.
